@@ -1,4 +1,4 @@
-local ULTIMATE = loadstring(game:HttpGet("https://raw.githubusercontent.com/REPLACE_ME/ULTIMATE/main/source.lua"))()
+local ULTIMATE = loadstring(game:HttpGet("https://raw.githubusercontent.com/rasfun/ULTIMATE-Library/main/source.lua"))()
 
 local Window = ULTIMATE:CreateWindow({
    Name = "ULTIMATE Hub",
