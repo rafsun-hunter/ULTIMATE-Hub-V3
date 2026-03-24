@@ -4,6 +4,7 @@ local Window = ULTIMATE:CreateWindow({
    Name = "ULTIMATE Hub",
    LoadingTitle = "ULTIMATE Library",
    LoadingSubtitle = "by Sirius & Gemini",
+   Logo = "rbxassetid://6031280306", -- Change this to your image ID
    KeySystem = false,
    KeySettings = {
       Title = "Key System",
@@ -12,27 +13,44 @@ local Window = ULTIMATE:CreateWindow({
    }
 })
 
-local Tab = Window:CreateTab("Combat")
+local Tab = Window:CreateTab("Combat", "crosshair") -- Lucide icon support!
 
-Tab:CreateSection("Aimbot Settings")
+local Section = Tab:CreateSection("Aimbot Settings")
 
-Tab:CreateToggle("Enable Aimbot", false, function(state)
-   print("Aimbot:", state)
-end)
+local Toggle = Tab:CreateToggle({
+   Name = "Enable Aimbot",
+   CurrentValue = false,
+   Flag = "AimbotToggle",
+   Callback = function(Value)
+      print("Aimbot:", Value)
+   end,
+})
 
-Tab:CreateSlider("Aimbot Smoothness", 1, 100, 20, function(value)
-   print("Smoothness:", value)
-end)
+local Slider = Tab:CreateSlider({
+   Name = "Smoothness",
+   Range = {1, 100},
+   Increment = 1,
+   Suffix = "ms",
+   CurrentValue = 20,
+   Flag = "AimbotSmooth",
+   Callback = function(Value)
+      print("Smoothness:", Value)
+   end,
+})
 
-Tab:CreateButton("Reset Settings", function()
-   print("Settings Reset")
-end)
+local Button = Tab:CreateButton({
+   Name = "Destroy UI",
+   Callback = function()
+      ULTIMATE:Destroy()
+   end,
+})
 
-local Tab2 = Window:CreateTab("Visuals")
-Tab2:CreateSection("ESP Options")
-Tab2:CreateToggle("Show Boxes", true, function(state)
-   print("Boxes:", state)
-end)
-Tab2:CreateToggle("Show Names", false, function(state)
-   print("Names:", state)
-end)
+local Tab2 = Window:CreateTab("Sense ESP", "eye")
+Tab2:CreateSection("ESP Control")
+Tab2:CreateButton({
+   Name = "Load Sense ESP",
+   Callback = function()
+      loadstring(game:HttpGet('https://sirius.menu/sense'))()
+      print("Sense Loaded!")
+   end,
+})
