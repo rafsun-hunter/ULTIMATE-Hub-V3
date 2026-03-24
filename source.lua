@@ -52,53 +52,70 @@ function ULTIMATE:CreateWindow(config)
         local LoadingFrame = Instance.new("Frame")
         LoadingFrame.Name = "LoadingFrame"
         LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
-        LoadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        LoadingFrame.BackgroundTransparency = 1
+        LoadingFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+        LoadingFrame.BackgroundTransparency = 0
         LoadingFrame.Parent = ScreenGui
 
-        local Blur = Instance.new("BlurEffect")
-        Blur.Size = 0
-        Blur.Parent = game:GetService("Lighting")
-
-        Tween(LoadingFrame, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {BackgroundTransparency = 0.2})
-        Tween(Blur, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Size = 20})
+        local Logo = Instance.new("ImageLabel")
+        Logo.Name = "Logo"
+        Logo.Size = UDim2.new(0, 100, 0, 100)
+        Logo.Position = UDim2.new(0.5, -50, 0.45, -50)
+        Logo.BackgroundTransparency = 1
+        Logo.Image = config.Logo or "rbxassetid://6031280306" -- Default placeholder
+        Logo.ImageTransparency = 1
+        Logo.Parent = LoadingFrame
 
         local Title = Instance.new("TextLabel")
-        Title.Size = UDim2.new(0, 400, 0, 50)
-        Title.Position = UDim2.new(0.5, -200, 0.45, -25)
+        Title.Size = UDim2.new(0, 400, 0, 30)
+        Title.Position = UDim2.new(0.5, -200, 0.6, 0)
         Title.BackgroundTransparency = 1
-        Title.Text = LoadingTitle
+        Title.Text = LoadingTitle:upper()
         Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Title.TextSize = 30
+        Title.TextSize = 24
         Title.Font = Enum.Font.GothamBold
         Title.TextTransparency = 1
         Title.Parent = LoadingFrame
 
         local Subtitle = Instance.new("TextLabel")
-        Subtitle.Size = UDim2.new(0, 400, 0, 30)
-        Subtitle.Position = UDim2.new(0.5, -200, 0.5, 10)
+        Subtitle.Size = UDim2.new(0, 400, 0, 20)
+        Subtitle.Position = UDim2.new(0.5, -200, 0.65, 0)
         Subtitle.BackgroundTransparency = 1
         Subtitle.Text = LoadingSubtitle
-        Subtitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-        Subtitle.TextSize = 18
+        Subtitle.TextColor3 = ULTIMATE.Themes.Default.SecondaryTextColor
+        Subtitle.TextSize = 14
         Subtitle.Font = Enum.Font.Gotham
         Subtitle.TextTransparency = 1
         Subtitle.Parent = LoadingFrame
 
-        Tween(Title, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {TextTransparency = 0})
-        task.wait(0.2)
-        Tween(Subtitle, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {TextTransparency = 0})
-
-        task.wait(1.5)
-
-        Tween(Title, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In}, {TextTransparency = 1})
-        Tween(Subtitle, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In}, {TextTransparency = 1})
-        task.wait(0.3)
-        Tween(LoadingFrame, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In}, {BackgroundTransparency = 1})
-        Tween(Blur, {0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In}, {Size = 0})
+        -- Animation Sequence
+        Tween(Logo, {1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out}, {ImageTransparency = 0, Size = UDim2.new(0, 120, 0, 120), Position = UDim2.new(0.5, -60, 0.45, -60)})
         task.wait(0.5)
+        Tween(Title, {0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out}, {TextTransparency = 0, Position = UDim2.new(0.5, -200, 0.58, 0)})
+        task.wait(0.2)
+        Tween(Subtitle, {0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out}, {TextTransparency = 0, Position = UDim2.new(0.5, -200, 0.63, 0)})
+
+        -- Breathing Effect
+        local breathing = true
+        task.spawn(function()
+            while breathing do
+                Tween(Logo, {1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut}, {Size = UDim2.new(0, 110, 0, 110), Position = UDim2.new(0.5, -55, 0.45, -55)})
+                task.wait(1.5)
+                Tween(Logo, {1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut}, {Size = UDim2.new(0, 120, 0, 120), Position = UDim2.new(0.5, -60, 0.45, -60)})
+                task.wait(1.5)
+            end
+        end)
+
+        task.wait(3)
+        breathing = false
+
+        -- Fade Out
+        Tween(Logo, {0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.In}, {ImageTransparency = 1, Size = UDim2.new(0, 100, 0, 100), Position = UDim2.new(0.5, -50, 0.45, -50)})
+        Tween(Title, {0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.In}, {TextTransparency = 1})
+        Tween(Subtitle, {0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.In}, {TextTransparency = 1})
+        task.wait(0.5)
+        Tween(LoadingFrame, {0.8, Enum.EasingStyle.Exponential, Enum.EasingDirection.In}, {BackgroundTransparency = 1})
+        task.wait(0.8)
         LoadingFrame:Destroy()
-        Blur:Destroy()
     end
 
     -- Key System
