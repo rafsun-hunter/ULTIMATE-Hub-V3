@@ -4,13 +4,13 @@
 
 ---
 
-## ✨ Features
+## ✨ Showcase & Demo
 
-- **⚡ Blazing Fast:** Optimized animations and minimal asset overhead for a snappy feel.
-- **🎨 Modern Aesthetic:** Sleek design with rounded corners (`UICorner`), subtle outlines (`UIStroke`), and professional color palettes.
-- **🌀 Advanced Loading System:** A beautiful splash screen with a blur background and smooth transitions.
-- **🔑 Integrated Key System:** A secure and user-friendly key verification prompt.
-- **📱 Responsive:** Designed to work smoothly across both PC and Mobile.
+To instantly **test the look and feel** of the ULTIMATE Library, run this script in your executor:
+
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/rasfun/ULTIMATE-Library/main/demo.lua"))()
+```
 
 ---
 
