@@ -371,25 +371,199 @@ function ULTIMATE:CreateWindow(config)
         table.insert(Tabs, {Button = TabButton, Content = TabContent})
 
         local Tab = {}
+        
+        function Tab:CreateSection(name)
+            local SectionTitle = Instance.new("TextLabel")
+            SectionTitle.Name = name.."_Section"
+            SectionTitle.Size = UDim2.new(0, 320, 0, 20)
+            SectionTitle.BackgroundTransparency = 1
+            SectionTitle.Text = name:upper()
+            SectionTitle.TextColor3 = ULTIMATE.Themes.Default.AccentColor
+            SectionTitle.Font = Enum.Font.GothamBold
+            SectionTitle.TextSize = 12
+            SectionTitle.TextXAlignment = Enum.HorizontalAlignment.Left
+            SectionTitle.Parent = TabContent
+
+            local SectionPadding = Instance.new("UIPadding")
+            SectionPadding.PaddingLeft = UDim.new(0, 5)
+            SectionPadding.Parent = SectionTitle
+        end
+
         function Tab:CreateButton(name, callback)
             local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(0, 320, 0, 40)
+            Button.Name = name.."_Button"
+            Button.Size = UDim2.new(0, 320, 0, 38)
             Button.BackgroundColor3 = ULTIMATE.Themes.Default.ElementColor
             Button.Text = name
             Button.TextColor3 = ULTIMATE.Themes.Default.TextColor
             Button.Font = Enum.Font.Gotham
             Button.TextSize = 14
-            Button.AutoButtonColor = true
+            Button.AutoButtonColor = false
             Button.Parent = TabContent
 
             local ButtonCorner = Instance.new("UICorner")
             ButtonCorner.CornerRadius = UDim.new(0, 6)
             ButtonCorner.Parent = Button
 
+            local ButtonStroke = Instance.new("UIStroke")
+            ButtonStroke.Color = ULTIMATE.Themes.Default.StrokeColor
+            ButtonStroke.Thickness = 1
+            ButtonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            ButtonStroke.Parent = Button
+
+            Button.MouseEnter:Connect(function()
+                Tween(Button, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)})
+                Tween(ButtonStroke, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Color = ULTIMATE.Themes.Default.AccentColor})
+            end)
+
+            Button.MouseLeave:Connect(function()
+                Tween(Button, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {BackgroundColor3 = ULTIMATE.Themes.Default.ElementColor})
+                Tween(ButtonStroke, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Color = ULTIMATE.Themes.Default.StrokeColor})
+            end)
+
             Button.MouseButton1Click:Connect(function()
+                Tween(Button, {0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Size = UDim2.new(0, 315, 0, 36)})
+                task.wait(0.1)
+                Tween(Button, {0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Size = UDim2.new(0, 320, 0, 38)})
                 callback()
             end)
             return Button
+        end
+
+        function Tab:CreateToggle(name, default, callback)
+            local Toggled = default or false
+            local Toggle = Instance.new("TextButton")
+            Toggle.Name = name.."_Toggle"
+            Toggle.Size = UDim2.new(0, 320, 0, 38)
+            Toggle.BackgroundColor3 = ULTIMATE.Themes.Default.ElementColor
+            Toggle.Text = name
+            Toggle.TextColor3 = ULTIMATE.Themes.Default.TextColor
+            Toggle.Font = Enum.Font.Gotham
+            Toggle.TextSize = 14
+            Toggle.TextXAlignment = Enum.TextXAlignment.Left
+            Toggle.AutoButtonColor = false
+            Toggle.Parent = TabContent
+
+            local TogglePadding = Instance.new("UIPadding")
+            TogglePadding.PaddingLeft = UDim.new(0, 15)
+            TogglePadding.Parent = Toggle
+
+            local ToggleCorner = Instance.new("UICorner")
+            ToggleCorner.CornerRadius = UDim.new(0, 6)
+            ToggleCorner.Parent = Toggle
+
+            local Box = Instance.new("Frame")
+            Box.Size = UDim2.new(0, 40, 0, 20)
+            Box.Position = UDim2.new(1, -55, 0.5, -10)
+            Box.BackgroundColor3 = Toggled and ULTIMATE.Themes.Default.AccentColor or Color3.fromRGB(60, 60, 60)
+            Box.Parent = Toggle
+
+            local BoxCorner = Instance.new("UICorner")
+            BoxCorner.CornerRadius = UDim.new(1, 0)
+            BoxCorner.Parent = Box
+
+            local Circle = Instance.new("Frame")
+            Circle.Size = UDim2.new(0, 16, 0, 16)
+            Circle.Position = Toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            Circle.Parent = Box
+
+            local CircleCorner = Instance.new("UICorner")
+            CircleCorner.CornerRadius = UDim.new(1, 0)
+            CircleCorner.Parent = Circle
+
+            Toggle.MouseButton1Click:Connect(function()
+                Toggled = not Toggled
+                Tween(Box, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {BackgroundColor3 = Toggled and ULTIMATE.Themes.Default.AccentColor or Color3.fromRGB(60, 60, 60)})
+                Tween(Circle, {0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out}, {Position = Toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)})
+                callback(Toggled)
+            end)
+            return Toggle
+        end
+
+        function Tab:CreateSlider(name, min, max, default, callback)
+            local Slider = Instance.new("Frame")
+            Slider.Name = name.."_Slider"
+            Slider.Size = UDim2.new(0, 320, 0, 50)
+            Slider.BackgroundColor3 = ULTIMATE.Themes.Default.ElementColor
+            Slider.Parent = TabContent
+
+            local SliderCorner = Instance.new("UICorner")
+            SliderCorner.CornerRadius = UDim.new(0, 6)
+            SliderCorner.Parent = Slider
+
+            local SliderTitle = Instance.new("TextLabel")
+            SliderTitle.Size = UDim2.new(1, -20, 0, 25)
+            SliderTitle.Position = UDim2.new(0, 10, 0, 0)
+            SliderTitle.BackgroundTransparency = 1
+            SliderTitle.Text = name
+            SliderTitle.TextColor3 = ULTIMATE.Themes.Default.TextColor
+            SliderTitle.Font = Enum.Font.Gotham
+            SliderTitle.TextSize = 14
+            SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
+            SliderTitle.Parent = Slider
+
+            local ValueLabel = Instance.new("TextLabel")
+            ValueLabel.Size = UDim2.new(0, 50, 0, 25)
+            ValueLabel.Position = UDim2.new(1, -60, 0, 0)
+            ValueLabel.BackgroundTransparency = 1
+            ValueLabel.Text = tostring(default or min)
+            ValueLabel.TextColor3 = ULTIMATE.Themes.Default.SecondaryTextColor
+            ValueLabel.Font = Enum.Font.Gotham
+            ValueLabel.TextSize = 14
+            ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            ValueLabel.Parent = Slider
+
+            local SliderBar = Instance.new("Frame")
+            SliderBar.Size = UDim2.new(1, -20, 0, 4)
+            SliderBar.Position = UDim2.new(0, 10, 0.7, 0)
+            SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            SliderBar.BorderSizePixel = 0
+            SliderBar.Parent = Slider
+
+            local BarCorner = Instance.new("UICorner")
+            BarCorner.CornerRadius = UDim.new(1, 0)
+            BarCorner.Parent = SliderBar
+
+            local Fill = Instance.new("Frame")
+            local initialFill = (default - min) / (max - min)
+            Fill.Size = UDim2.new(initialFill, 0, 1, 0)
+            Fill.BackgroundColor3 = ULTIMATE.Themes.Default.AccentColor
+            Fill.BorderSizePixel = 0
+            Fill.Parent = SliderBar
+
+            local FillCorner = Instance.new("UICorner")
+            FillCorner.CornerRadius = UDim.new(1, 0)
+            FillCorner.Parent = Fill
+
+            local dragging = false
+            local function update(input)
+                local pos = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
+                Fill.Size = UDim2.new(pos, 0, 1, 0)
+                local val = math.floor(min + (max - min) * pos)
+                ValueLabel.Text = tostring(val)
+                callback(val)
+            end
+
+            Slider.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = true
+                    update(input)
+                end
+            end)
+
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = false
+                end
+            end)
+
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    update(input)
+                end
+            end)
+            return Slider
         end
         return Tab
     end

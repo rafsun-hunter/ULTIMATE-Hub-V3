@@ -12,8 +12,27 @@ local Window = ULTIMATE:CreateWindow({
    }
 })
 
-local Tab = Window:CreateTab("Main")
+local Tab = Window:CreateTab("Combat")
 
-Tab:CreateButton("Test Button", function()
-   print("ULTIMATE works!")
+Tab:CreateSection("Aimbot Settings")
+
+Tab:CreateToggle("Enable Aimbot", false, function(state)
+   print("Aimbot:", state)
+end)
+
+Tab:CreateSlider("Aimbot Smoothness", 1, 100, 20, function(value)
+   print("Smoothness:", value)
+end)
+
+Tab:CreateButton("Reset Settings", function()
+   print("Settings Reset")
+end)
+
+local Tab2 = Window:CreateTab("Visuals")
+Tab2:CreateSection("ESP Options")
+Tab2:CreateToggle("Show Boxes", true, function(state)
+   print("Boxes:", state)
+end)
+Tab2:CreateToggle("Show Names", false, function(state)
+   print("Names:", state)
 end)
