@@ -1,5 +1,8 @@
 local repo = "https://raw.githubusercontent.com/rafsun-hunter/ULTIMATE-Hub-V3/main/"
 
+-- Load official Rayfield Library from Sirius
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
 local function loadModule(path)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(repo .. path))()
@@ -9,9 +12,6 @@ local function loadModule(path)
     return nil
 end
 
--- Initialize UI Library
-local ULTIMATE = loadstring(game:HttpGet(repo .. "source.lua"))()
-
 -- Load Modular Cheats
 local Fly = loadModule("cheat/fly.lua")
 local Aimbot = loadModule("cheat/aimbot.lua")
@@ -19,34 +19,41 @@ local ESP = loadModule("cheat/esp.lua")
 local Teleport = loadModule("cheat/teleport.lua")
 local Magic = loadModule("cheat/magic.lua")
 
-local Window = ULTIMATE:CreateWindow({
+local Window = Rayfield:CreateWindow({
    Name = "ULTIMATE HUB V3",
-   LoadingTitle = "ULTIMATE Library",
-   LoadingSubtitle = "by Sirius & Gemini",
-   Logo = "rbxassetid://6031280306",
+   LoadingTitle = "Rayfield Interface Suite",
+   LoadingSubtitle = "by Sirius",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "UltimateHubV3",
+      FileName = "Config"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "sirius",
+      RememberJoins = true
+   },
    KeySystem = false
 })
 
 -- Combat Tab
-local CombatTab = Window:CreateTab("Combat", "crosshair")
+local CombatTab = Window:CreateTab("Combat", 4483362458) -- Crosshair Icon
 if Aimbot then
     CombatTab:CreateSection("Aimbot")
     CombatTab:CreateToggle({
        Name = "Enable Aimbot",
        CurrentValue = false,
+       Flag = "AimbotToggle",
        Callback = function(Value) Aimbot:Toggle(Value) end,
     })
     CombatTab:CreateSlider({
        Name = "Aimbot FOV",
        Range = {10, 500},
        Increment = 1,
+       Suffix = "Radius",
        CurrentValue = 100,
+       Flag = "AimbotFOV",
        Callback = function(Value) Aimbot:SetFOV(Value) end,
-    })
-    CombatTab:CreateToggle({
-       Name = "Aimbot Team Check",
-       CurrentValue = false,
-       Callback = function(Value) Aimbot:SetTeamCheck(Value) end,
     })
 end
 
@@ -55,74 +62,80 @@ if Magic then
     CombatTab:CreateToggle({
        Name = "Enable Magic Hitbox",
        CurrentValue = false,
+       Flag = "MagicToggle",
        Callback = function(Value) Magic:Toggle(Value) end,
     })
     CombatTab:CreateSlider({
        Name = "Hitbox Size",
        Range = {2, 50},
        Increment = 1,
+       Suffix = "Studs",
        CurrentValue = 5,
+       Flag = "HitboxSize",
        Callback = function(Value) Magic:SetSize(Value) end,
     })
 end
 
 -- Visuals Tab
-local VisualsTab = Window:CreateTab("Visuals", "eye")
+local VisualsTab = Window:CreateTab("Visuals", 4483345998) -- Eye Icon
 if ESP then
     VisualsTab:CreateSection("ESP Settings")
     VisualsTab:CreateToggle({
        Name = "Enable ESP",
        CurrentValue = false,
+       Flag = "ESPToggle",
        Callback = function(Value) ESP:Toggle(Value) end,
     })
     VisualsTab:CreateToggle({
        Name = "ESP Boxes",
        CurrentValue = false,
+       Flag = "ESPBoxes",
        Callback = function(Value) ESP:SetBoxes(Value) end,
     })
     VisualsTab:CreateToggle({
        Name = "ESP Names",
        CurrentValue = false,
+       Flag = "ESPNames",
        Callback = function(Value) ESP:SetNames(Value) end,
     })
     VisualsTab:CreateToggle({
        Name = "ESP Tracers",
        CurrentValue = false,
+       Flag = "ESPTracers",
        Callback = function(Value) ESP:SetTracers(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Team Check",
-       CurrentValue = false,
-       Callback = function(Value) ESP:SetTeamCheck(Value) end,
     })
 end
 
 -- Movement Tab
-local MovementTab = Window:CreateTab("Movement", "move")
+local MovementTab = Window:CreateTab("Movement", 4483362135) -- Move Icon
 if Fly then
     MovementTab:CreateSection("Flight")
     MovementTab:CreateToggle({
        Name = "Enable Fly",
        CurrentValue = false,
+       Flag = "FlyToggle",
        Callback = function(Value) Fly:Toggle(Value) end,
     })
     MovementTab:CreateSlider({
        Name = "Fly Speed",
        Range = {1, 10},
        Increment = 0.5,
+       Suffix = "x",
        CurrentValue = 1,
+       Flag = "FlySpeed",
        Callback = function(Value) Fly:SetSpeed(Value) end,
     })
 end
 
 -- Teleport Tab
-local TeleportTab = Window:CreateTab("Teleport", "map-pin")
+local TeleportTab = Window:CreateTab("Teleport", 4483345998) -- Pin Icon
 if Teleport then
     TeleportTab:CreateSection("Player Teleport")
     local PlayerDropdown = TeleportTab:CreateDropdown({
        Name = "Select Player",
        Options = Teleport:GetPlayerNames(),
        CurrentOption = "",
+       Flag = "TeleportDropdown",
        Callback = function(Option)
           Teleport:ToPlayer(Option[1])
        end,
@@ -136,18 +149,9 @@ if Teleport then
     })
 end
 
--- Credits
-local CreditsTab = Window:CreateTab("Credits", "info")
-CreditsTab:CreateSection("Authors")
-CreditsTab:CreateLabel("Script by Gemini CLI")
-CreditsTab:CreateLabel("UI by Sirius (Rayfield)")
-CreditsTab:CreateLabel("Fly Logic: FlyGuiV3")
-CreditsTab:CreateLabel("Aimbot: Exunys")
-CreditsTab:CreateLabel("ESP: Siper & Mickey")
-
-ULTIMATE:Notify({
-   Title = "Script Loaded",
-   Content = "ULTIMATE HUB V3 is now live via GitHub!",
+Rayfield:Notify({
+   Title = "ULTIMATE HUB V3",
+   Content = "Successfully loaded with Sirius Rayfield UI!",
    Duration = 5,
-   Image = "check-circle",
+   Image = 4483362458,
 })
