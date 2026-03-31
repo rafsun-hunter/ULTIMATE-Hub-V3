@@ -18,6 +18,7 @@ local Aimbot = loadModule("cheat/aimbot.lua")
 local ESP = loadModule("cheat/esp.lua")
 local Teleport = loadModule("cheat/teleport.lua")
 local Magic = loadModule("cheat/magic.lua")
+local Jump = loadModule("cheat/jump.lua")
 
 local Window = Rayfield:CreateWindow({
    Name = "ULTIMATE HUB V3",
@@ -159,6 +160,29 @@ if Teleport then
     TeleportTab:CreateSection("Player Teleport")
     local PlayerDropdown = TeleportTab:CreateDropdown({
        Name = "Select Player",
+       Options = Teleport:GetPlayerNames(),
+       CurrentOption = "",
+       Flag = "TeleportDropdown",
+       Callback = function(Option)
+          Teleport:ToPlayer(Option[1])
+       end,
+    })
+
+    TeleportTab:CreateButton({
+       Name = "Refresh Player List",
+       Callback = function()
+          PlayerDropdown:Set(Teleport:GetPlayerNames())
+       end,
+    })
+end
+
+Rayfield:Notify({
+   Title = "ULTIMATE HUB V3",
+   Content = "Premium ESP & Fly Modules Loaded!",
+   Duration = 5,
+   Image = 4483362458,
+})
+      Name = "Select Player",
        Options = Teleport:GetPlayerNames(),
        CurrentOption = "",
        Flag = "TeleportDropdown",
