@@ -1,10 +1,10 @@
--- Simplified Aimbot Module for ULTIMATE Script
+-- Cross-Platform Aimbot Module
 local AimbotModule = {
     Enabled = false,
+    AutoLock = false, -- Useful for Mobile
     Settings = {
         TeamCheck = false,
         FOV = 100,
-        Locked = nil,
     }
 }
 
@@ -20,7 +20,6 @@ local fovCircle = Drawing.new("Circle")
 fovCircle.Visible = false
 fovCircle.Thickness = 1
 fovCircle.Color = Color3.fromRGB(255, 255, 255)
-fovCircle.Filled = false
 fovCircle.Radius = AimbotModule.Settings.FOV
 
 local function GetClosestPlayer()
@@ -50,7 +49,10 @@ RunService.RenderStepped:Connect(function()
         fovCircle.Radius = AimbotModule.Settings.FOV
         fovCircle.Position = UserInputService:GetMouseLocation()
 
-        if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        -- Trigger: Right Click (PC) OR AutoLock (Mobile)
+        local isTriggered = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) or AimbotModule.AutoLock
+        
+        if isTriggered then
             local target = GetClosestPlayer()
             if target and target.Character and target.Character:FindFirstChild("Head") then
                 Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
@@ -61,16 +63,9 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-function AimbotModule:Toggle(value)
-    self.Enabled = value
-end
-
-function AimbotModule:SetFOV(value)
-    self.Settings.FOV = value
-end
-
-function AimbotModule:SetTeamCheck(value)
-    self.Settings.TeamCheck = value
-end
+function AimbotModule:Toggle(value) self.Enabled = value end
+function AimbotModule:SetAutoLock(value) self.AutoLock = value end
+function AimbotModule:SetFOV(value) self.Settings.FOV = value end
+function AimbotModule:SetTeamCheck(value) self.Settings.TeamCheck = value end
 
 return AimbotModule

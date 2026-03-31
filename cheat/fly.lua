@@ -38,33 +38,24 @@ function FlyModule:Toggle(value)
         heartbeatConnection = RunService.Heartbeat:Connect(function()
             local direction = Vector3.new(0, 0, 0)
             
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                direction = direction + Camera.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                direction = direction - Camera.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                direction = direction - Camera.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                direction = direction + Camera.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                direction = direction + Vector3.new(0, 1, 0)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                direction = direction - Vector3.new(0, 1, 0)
+            -- PC Controls
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then direction = direction + Vector3.new(0, 1, 0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then direction = direction - Vector3.new(0, 1, 0) end
+
+            -- Mobile/Auto-Forward (If moving)
+            if direction.Magnitude == 0 and humanoid.MoveDirection.Magnitude > 0 then
+                direction = humanoid.MoveDirection
             end
 
             bodyVelocity.Velocity = direction * (speed * 50)
             bodyGyro.CFrame = Camera.CFrame
         end)
     else
-        if heartbeatConnection then
-            heartbeatConnection:Disconnect()
-            heartbeatConnection = nil
-        end
+        if heartbeatConnection then heartbeatConnection:Disconnect() heartbeatConnection = nil end
         if bodyGyro then bodyGyro:Destroy() end
         if bodyVelocity then bodyVelocity:Destroy() end
         humanoid.PlatformStand = false

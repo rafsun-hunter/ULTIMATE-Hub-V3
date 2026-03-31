@@ -46,6 +46,12 @@ if Aimbot then
        Flag = "AimbotToggle",
        Callback = function(Value) Aimbot:Toggle(Value) end,
     })
+    CombatTab:CreateToggle({
+       Name = "Auto-Lock (Mobile Friendly)",
+       CurrentValue = false,
+       Flag = "AimbotAutoLock",
+       Callback = function(Value) Aimbot:SetAutoLock(Value) end,
+    })
     CombatTab:CreateSlider({
        Name = "Aimbot FOV",
        Range = {10, 500},
