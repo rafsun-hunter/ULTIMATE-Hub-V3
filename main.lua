@@ -99,16 +99,28 @@ if ESP then
        Callback = function(Value) ESP:SetBoxes(Value) end,
     })
     VisualsTab:CreateToggle({
-       Name = "ESP Names",
-       CurrentValue = false,
-       Flag = "ESPNames",
-       Callback = function(Value) ESP:SetNames(Value) end,
-    })
-    VisualsTab:CreateToggle({
        Name = "ESP Tracers",
        CurrentValue = false,
        Flag = "ESPTracers",
        Callback = function(Value) ESP:SetTracers(Value) end,
+    })
+    VisualsTab:CreateToggle({
+       Name = "ESP Health",
+       CurrentValue = false,
+       Flag = "ESPHealth",
+       Callback = function(Value) ESP:SetHealth(Value) end,
+    })
+    VisualsTab:CreateToggle({
+       Name = "ESP Distance",
+       CurrentValue = false,
+       Flag = "ESPDistance",
+       Callback = function(Value) ESP:SetDistance(Value) end,
+    })
+    VisualsTab:CreateToggle({
+       Name = "ESP Team Check",
+       CurrentValue = false,
+       Flag = "ESPTeamCheck",
+       Callback = function(Value) ESP:SetTeamCheck(Value) end,
     })
 end
 
