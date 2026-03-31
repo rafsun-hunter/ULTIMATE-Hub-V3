@@ -144,6 +144,25 @@ if ESP then
     })
 end
 
+if Radar then
+    VisualsTab:CreateSection("2D Radar")
+    VisualsTab:CreateToggle({
+       Name = "Enable 2D Radar",
+       CurrentValue = false,
+       Flag = "RadarToggle",
+       Callback = function(Value) Radar:Toggle(Value) end,
+    })
+    VisualsTab:CreateSlider({
+       Name = "Radar Range",
+       Range = {50, 1000},
+       Increment = 10,
+       Suffix = "Studs",
+       CurrentValue = 200,
+       Flag = "RadarRange",
+       Callback = function(Value) Radar:SetRange(Value) end,
+    })
+end
+
 -- Movement Tab
 local MovementTab = Window:CreateTab("Movement", 4483362135) -- Move Icon
 if Fly then
@@ -205,29 +224,6 @@ if Teleport then
        Name = "Refresh Player List",
        Callback = function()
           PlayerDropdown:Set(Teleport:GetPlayerNames())
-       end,
-    })
-end
-
--- Misc Tab
-local MiscTab = Window:CreateTab("Misc", 4483362458) -- Settings/Misc Icon
-MiscTab:CreateSection("Server")
-MiscTab:CreateButton({
-   Name = "Rejoin Game",
-   Callback = function()
-      local ts = game:GetService("TeleportService")
-      local p = game:GetService("Players").LocalPlayer
-      ts:Teleport(game.PlaceId, p)
-   end,
-})
-
-Rayfield:Notify({
-   Title = "ULTIMATE HUB V3",
-   Content = "Premium ESP & Fly Modules Loaded!",
-   Duration = 5,
-   Image = 4483362458,
-})
-eleport:GetPlayerNames())
        end,
     })
 end
