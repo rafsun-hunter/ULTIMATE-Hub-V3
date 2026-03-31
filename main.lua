@@ -150,9 +150,29 @@ if Fly then
        Flag = "FlySpeed",
        Callback = function(Value) Fly:SetSpeed(Value) end,
     })
-    MovementTab:CreateLabel("Controls: WASD + Space/Shift (PC)")
-    MovementTab:CreateLabel("Mobile: Joystick + Camera Direction")
 end
+
+if Jump then
+    MovementTab:CreateSection("Jump Hacks")
+    MovementTab:CreateToggle({
+       Name = "Infinite Jump",
+       CurrentValue = false,
+       Flag = "InfiniteJump",
+       Callback = function(Value) Jump:ToggleInfinite(Value) end,
+    })
+    MovementTab:CreateSlider({
+       Name = "Jump Power",
+       Range = {50, 500},
+       Increment = 1,
+       Suffix = "Power",
+       CurrentValue = 50,
+       Flag = "JumpPower",
+       Callback = function(Value) Jump:SetJumpPower(Value) end,
+    })
+end
+
+MovementTab:CreateLabel("Controls: WASD + Space/Shift (PC)")
+MovementTab:CreateLabel("Mobile: Joystick + Camera Direction")
 
 -- Teleport Tab
 local TeleportTab = Window:CreateTab("Teleport", 4483345998) -- Pin Icon
@@ -160,29 +180,6 @@ if Teleport then
     TeleportTab:CreateSection("Player Teleport")
     local PlayerDropdown = TeleportTab:CreateDropdown({
        Name = "Select Player",
-       Options = Teleport:GetPlayerNames(),
-       CurrentOption = "",
-       Flag = "TeleportDropdown",
-       Callback = function(Option)
-          Teleport:ToPlayer(Option[1])
-       end,
-    })
-
-    TeleportTab:CreateButton({
-       Name = "Refresh Player List",
-       Callback = function()
-          PlayerDropdown:Set(Teleport:GetPlayerNames())
-       end,
-    })
-end
-
-Rayfield:Notify({
-   Title = "ULTIMATE HUB V3",
-   Content = "Premium ESP & Fly Modules Loaded!",
-   Duration = 5,
-   Image = 4483362458,
-})
-      Name = "Select Player",
        Options = Teleport:GetPlayerNames(),
        CurrentOption = "",
        Flag = "TeleportDropdown",
