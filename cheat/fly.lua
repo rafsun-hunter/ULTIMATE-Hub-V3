@@ -1,4 +1,4 @@
--- Premium Fly Module for ULTIMATE Script
+-- Ultimate Fly & Noclip Module (Mobile Optimized)
 local FlyModule = {
     Enabled = false,
     Speed = 1,
@@ -18,17 +18,26 @@ local heartbeatConn, noclipConn
 
 local function getDirection()
     local dir = Vector3.new(0, 0, 0)
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    
+    -- PC Controls (WASD + Space/Shift)
     if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
     if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
     if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
     if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
-    
-    -- Global Y-axis for precise vertical control
-    if UserInputService:IsKeyDown(Enum.KeyCode.E) or UserInputService:IsKeyDown(Enum.KeyCode.Space) then 
-        dir = dir + Vector3.new(0, 1, 0) 
-    end
-    if UserInputService:IsKeyDown(Enum.KeyCode.Q) or UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then 
-        dir = dir - Vector3.new(0, 1, 0) 
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0, 1, 0) end
+    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir = dir - Vector3.new(0, 1, 0) end
+
+    -- Mobile/Joystick Support: If moving with joystick, use camera look vector to go where looking
+    if dir.Magnitude == 0 and hum and hum.MoveDirection.Magnitude > 0 then
+        -- This logic makes it so moving the joystick "forward" moves you where your camera is looking
+        local moveDir = hum.MoveDirection
+        dir = (Camera.CFrame.LookVector * moveDir.Z * -1) + (Camera.CFrame.RightVector * moveDir.X)
+        
+        -- If just moving forward on mobile, also allow looking up/down to change altitude
+        if moveDir.Z ~= 0 or moveDir.X ~= 0 then
+            dir = (Camera.CFrame.LookVector * (moveDir.Magnitude))
+        end
     end
     
     return dir
@@ -39,7 +48,9 @@ local function setNoclip(state)
         noclipConn = RunService.Stepped:Connect(function()
             if LocalPlayer.Character then
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") then part.CanCollide = false end
+                    if part:IsA("BasePart") and part.CanCollide then 
+                        part.CanCollide = false 
+                    end
                 end
             end
         end)
