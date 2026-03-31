@@ -1,6 +1,6 @@
--- Improved Jump Module for ULTIMATE Script (Android Fixed)
+-- Premium Jump Module for ULTIMATE Script
 local JumpModule = {
-    InfiniteJump = false,
+    AirJump = false,
     JumpPower = 50
 }
 
@@ -8,21 +8,20 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Fix for Android: Instead of state change, we use Jump property directly
--- JumpRequest works better on PC, but we'll keep it as a fallback
+-- Air Jump Logic (Infinite Jump)
 UserInputService.JumpRequest:Connect(function()
-    if JumpModule.InfiniteJump then
+    if JumpModule.AirJump then
         local character = LocalPlayer.Character
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            -- Setting Jump to true instead of state change avoids hiding the button
-            humanoid.Jump = true
+            -- Use ChangeState but with a small delay to prevent Android UI glitches
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end
 end)
 
-function JumpModule:ToggleInfinite(value)
-    self.InfiniteJump = value
+function JumpModule:ToggleAirJump(value)
+    self.AirJump = value
 end
 
 function JumpModule:SetJumpPower(value)
@@ -30,13 +29,12 @@ function JumpModule:SetJumpPower(value)
     local character = LocalPlayer.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     if humanoid then
-        -- Ensure UseJumpPower is true to avoid interfering with JumpHeight/Mobile UI
         humanoid.UseJumpPower = true
         humanoid.JumpPower = value
     end
 end
 
--- Handle character respawn
+-- Re-apply on respawn
 LocalPlayer.CharacterAdded:Connect(function(character)
     local humanoid = character:WaitForChild("Humanoid", 10)
     if humanoid then

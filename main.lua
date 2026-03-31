@@ -155,14 +155,14 @@ end
 if Jump then
     MovementTab:CreateSection("Jump Hacks")
     MovementTab:CreateToggle({
-       Name = "Infinite Jump",
+       Name = "Air Jump (Infinite)",
        CurrentValue = false,
-       Flag = "InfiniteJump",
-       Callback = function(Value) Jump:ToggleInfinite(Value) end,
+       Flag = "AirJump",
+       Callback = function(Value) Jump:ToggleAirJump(Value) end,
     })
     MovementTab:CreateSlider({
        Name = "Jump Power",
-       Range = {50, 500},
+       Range = {1, 2000},
        Increment = 1,
        Suffix = "Power",
        CurrentValue = 50,
