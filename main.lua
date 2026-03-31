@@ -196,6 +196,18 @@ if Teleport then
     })
 end
 
+-- Misc Tab
+local MiscTab = Window:CreateTab("Misc", 4483362458) -- Settings/Misc Icon
+MiscTab:CreateSection("Server")
+MiscTab:CreateButton({
+   Name = "Rejoin Game",
+   Callback = function()
+      local ts = game:GetService("TeleportService")
+      local p = game:GetService("Players").LocalPlayer
+      ts:Teleport(game.PlaceId, p)
+   end,
+})
+
 Rayfield:Notify({
    Title = "ULTIMATE HUB V3",
    Content = "Premium ESP & Fly Modules Loaded!",
