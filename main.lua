@@ -106,6 +106,18 @@ if ESP then
        Callback = function(Value) ESP:SetBoxes(Value) end,
     })
     VisualsTab:CreateToggle({
+       Name = "ESP Box Fill",
+       CurrentValue = false,
+       Flag = "ESPBoxFill",
+       Callback = function(Value) ESP:SetBoxFill(Value) end,
+    })
+    VisualsTab:CreateToggle({
+       Name = "Character Glow (Chams)",
+       CurrentValue = false,
+       Flag = "ESPGlow",
+       Callback = function(Value) ESP:SetGlow(Value) end,
+    })
+    VisualsTab:CreateToggle({
        Name = "ESP Names (Outlined)",
        CurrentValue = false,
        Flag = "ESPNames",
