@@ -1,14 +1,30 @@
 local repo = "https://raw.githubusercontent.com/rafsun-hunter/ULTIMATE-Hub-V3/main/"
 
+print("ULTIMATE Hub | Initializing...")
+
 -- Load official Rayfield Library from Sirius
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local RayfieldSource = game:HttpGet('https://sirius.menu/rayfield')
+local RayfieldFunc, RayfieldErr = loadstring(RayfieldSource)
+if not RayfieldFunc then
+    error("ULTIMATE Hub | Failed to load Rayfield: " .. tostring(RayfieldErr))
+end
+local Rayfield = RayfieldFunc()
+print("ULTIMATE Hub | Rayfield Loaded")
 
 local function loadModule(path)
-    local success, result = pcall(function()
-        return loadstring(game:HttpGet(repo .. path))()
-    end)
-    if success then return result end
-    warn("ULTIMATE Hub | Failed to load module: " .. path)
+    print("ULTIMATE Hub | Loading module: " .. path)
+    local source = game:HttpGet(repo .. path)
+    local func, err = loadstring(source)
+    if func then
+        local success, result = pcall(func)
+        if success then 
+            print("ULTIMATE Hub | Module loaded successfully: " .. path)
+            return result 
+        end
+        warn("ULTIMATE Hub | Runtime error in module " .. path .. ": " .. tostring(result))
+    else
+        warn("ULTIMATE Hub | Syntax error in module " .. path .. ": " .. tostring(err))
+    end
     return nil
 end
 
@@ -21,6 +37,7 @@ local Magic = loadModule("cheat/magic.lua")
 local Jump = loadModule("cheat/jump.lua")
 local Radar = loadModule("cheat/radar.lua")
 
+print("ULTIMATE Hub | Creating Window...")
 local Window = Rayfield:CreateWindow({
    Name = "ULTIMATE HUB V3",
    LoadingTitle = "Rayfield Interface Suite",
@@ -240,9 +257,11 @@ MiscTab:CreateButton({
    end,
 })
 
+print("ULTIMATE Hub | Finished Loading")
+
 Rayfield:Notify({
    Title = "ULTIMATE HUB V3",
    Content = "Premium ESP & Fly Modules Loaded!",
    Duration = 5,
-   Image = 4483362458,
+   Image = "rbxassetid://4483362458",
 })
