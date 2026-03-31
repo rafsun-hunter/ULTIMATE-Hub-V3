@@ -1,4 +1,9 @@
-local FlyModule = {}
+-- Premium Fly Module for ULTIMATE Script
+local FlyModule = {
+    Enabled = false,
+    Speed = 1,
+    Noclip = true -- Always on for Premium Fly
+}
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,62 +13,85 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
-local flying = false
-local speed = 1
-local bodyGyro, bodyVelocity
-local heartbeatConnection
+local bodyVelocity, bodyGyro
+local heartbeatConn, noclipConn
+
+local function getDirection()
+    local dir = Vector3.new(0, 0, 0)
+    if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
+    
+    -- Global Y-axis for precise vertical control
+    if UserInputService:IsKeyDown(Enum.KeyCode.E) or UserInputService:IsKeyDown(Enum.KeyCode.Space) then 
+        dir = dir + Vector3.new(0, 1, 0) 
+    end
+    if UserInputService:IsKeyDown(Enum.KeyCode.Q) or UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then 
+        dir = dir - Vector3.new(0, 1, 0) 
+    end
+    
+    return dir
+end
+
+local function setNoclip(state)
+    if state then
+        noclipConn = RunService.Stepped:Connect(function()
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then part.CanCollide = false end
+                end
+            end
+        end)
+    else
+        if noclipConn then noclipConn:Disconnect() noclipConn = nil end
+        if LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = true end
+            end
+        end
+    end
+end
 
 function FlyModule:Toggle(value)
-    flying = value
-    local character = LocalPlayer.Character
-    if not character then return end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if not rootPart or not humanoid then return end
+    self.Enabled = value
+    local char = LocalPlayer.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not root or not hum then return end
 
-    if flying then
+    if self.Enabled then
+        setNoclip(true)
+        hum.PlatformStand = true
+        
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Parent = root
+        
         bodyGyro = Instance.new("BodyGyro")
         bodyGyro.P = 9e4
-        bodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bodyGyro.cframe = rootPart.CFrame
-        bodyGyro.Parent = rootPart
-
-        bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
-        bodyVelocity.Parent = rootPart
-
-        humanoid.PlatformStand = true
-
-        heartbeatConnection = RunService.Heartbeat:Connect(function()
-            local direction = Vector3.new(0, 0, 0)
-            
-            -- PC Controls
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + Camera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - Camera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - Camera.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + Camera.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then direction = direction + Vector3.new(0, 1, 0) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then direction = direction - Vector3.new(0, 1, 0) end
-
-            -- Mobile/Auto-Forward (If moving)
-            if direction.Magnitude == 0 and humanoid.MoveDirection.Magnitude > 0 then
-                direction = humanoid.MoveDirection
-            end
-
-            bodyVelocity.Velocity = direction * (speed * 50)
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.CFrame = root.CFrame
+        bodyGyro.Parent = root
+        
+        heartbeatConn = RunService.Heartbeat:Connect(function()
+            local dir = getDirection()
+            bodyVelocity.Velocity = dir * (self.Speed * 50)
             bodyGyro.CFrame = Camera.CFrame
         end)
     else
-        if heartbeatConnection then heartbeatConnection:Disconnect() heartbeatConnection = nil end
-        if bodyGyro then bodyGyro:Destroy() end
+        setNoclip(false)
+        if heartbeatConn then heartbeatConn:Disconnect() heartbeatConn = nil end
         if bodyVelocity then bodyVelocity:Destroy() end
-        humanoid.PlatformStand = false
+        if bodyGyro then bodyGyro:Destroy() end
+        if hum then hum.PlatformStand = false end
     end
 end
 
 function FlyModule:SetSpeed(value)
-    speed = value
+    self.Speed = value
 end
 
 return FlyModule

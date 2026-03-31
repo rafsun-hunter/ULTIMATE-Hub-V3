@@ -85,7 +85,7 @@ end
 -- Visuals Tab
 local VisualsTab = Window:CreateTab("Visuals", 4483345998) -- Eye Icon
 if ESP then
-    VisualsTab:CreateSection("ESP Settings")
+    VisualsTab:CreateSection("Premium ESP")
     VisualsTab:CreateToggle({
        Name = "Enable ESP",
        CurrentValue = false,
@@ -93,28 +93,34 @@ if ESP then
        Callback = function(Value) ESP:Toggle(Value) end,
     })
     VisualsTab:CreateToggle({
-       Name = "ESP Boxes",
+       Name = "Player Count (Top)",
+       CurrentValue = true,
+       Flag = "ESPPlayerCount",
+       Callback = function(Value) ESP:SetPlayerCount(Value) end,
+    })
+    VisualsTab:CreateToggle({
+       Name = "ESP Boxes (Outlined)",
        CurrentValue = false,
        Flag = "ESPBoxes",
        Callback = function(Value) ESP:SetBoxes(Value) end,
     })
     VisualsTab:CreateToggle({
-       Name = "ESP Tracers",
+       Name = "ESP Names (Outlined)",
        CurrentValue = false,
-       Flag = "ESPTracers",
-       Callback = function(Value) ESP:SetTracers(Value) end,
+       Flag = "ESPNames",
+       Callback = function(Value) ESP:SetNames(Value) end,
     })
     VisualsTab:CreateToggle({
-       Name = "ESP Health",
+       Name = "ESP Health (Bar + Text)",
        CurrentValue = false,
        Flag = "ESPHealth",
        Callback = function(Value) ESP:SetHealth(Value) end,
     })
     VisualsTab:CreateToggle({
-       Name = "ESP Distance",
+       Name = "ESP Tracers (Outlined)",
        CurrentValue = false,
-       Flag = "ESPDistance",
-       Callback = function(Value) ESP:SetDistance(Value) end,
+       Flag = "ESPTracers",
+       Callback = function(Value) ESP:SetTracers(Value) end,
     })
     VisualsTab:CreateToggle({
        Name = "ESP Team Check",
@@ -127,7 +133,7 @@ end
 -- Movement Tab
 local MovementTab = Window:CreateTab("Movement", 4483362135) -- Move Icon
 if Fly then
-    MovementTab:CreateSection("Flight")
+    MovementTab:CreateSection("Premium Flight")
     MovementTab:CreateToggle({
        Name = "Enable Fly",
        CurrentValue = false,
@@ -143,6 +149,8 @@ if Fly then
        Flag = "FlySpeed",
        Callback = function(Value) Fly:SetSpeed(Value) end,
     })
+    MovementTab:CreateLabel("Controls: WASD + Space/Shift (PC)")
+    MovementTab:CreateLabel("Mobile: Joystick + Camera Direction")
 end
 
 -- Teleport Tab
@@ -169,7 +177,7 @@ end
 
 Rayfield:Notify({
    Title = "ULTIMATE HUB V3",
-   Content = "Successfully loaded with Sirius Rayfield UI!",
+   Content = "Premium ESP & Fly Modules Loaded!",
    Duration = 5,
    Image = 4483362458,
 })
