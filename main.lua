@@ -179,6 +179,12 @@ if Radar then
        Flag = "RadarRange",
        Callback = function(Value) Radar:SetRange(Value) end,
     })
+    VisualsTab:CreateToggle({
+       Name = "Show Radar Icons",
+       CurrentValue = true,
+       Flag = "RadarIcons",
+       Callback = function(Value) Radar:ToggleIcons(Value) end,
+    })
 end
 
 -- Movement Tab
@@ -199,6 +205,25 @@ if Fly then
        CurrentValue = 1,
        Flag = "FlySpeed",
        Callback = function(Value) Fly:SetSpeed(Value) end,
+    })
+end
+
+if Run then
+    MovementTab:CreateSection("Speed Hacks")
+    MovementTab:CreateToggle({
+       Name = "Fast Run",
+       CurrentValue = false,
+       Flag = "FastRun",
+       Callback = function(Value) Run:Toggle(Value) end,
+    })
+    MovementTab:CreateSlider({
+       Name = "Walk Speed",
+       Range = {1, 1000},
+       Increment = 1,
+       Suffix = "Speed",
+       CurrentValue = 16,
+       Flag = "WalkSpeed",
+       Callback = function(Value) Run:SetSpeed(Value) end,
     })
 end
 
@@ -249,24 +274,6 @@ end
 -- Misc Tab
 local MiscTab = Window:CreateTab("Misc", 4483362458) -- Settings/Misc Icon
 MiscTab:CreateSection("Server")
-MiscTab:CreateButton({
-   Name = "Rejoin Game",
-   Callback = function()
-      local ts = game:GetService("TeleportService")
-      local p = game:GetService("Players").LocalPlayer
-      ts:Teleport(game.PlaceId, p)
-   end,
-})
-
-print("ULTIMATE Hub | Finished Loading")
-
-Rayfield:Notify({
-   Title = "ULTIMATE HUB V3",
-   Content = "Premium ESP & Fly Modules Loaded!",
-   Duration = 5,
-   Image = "rbxassetid://4483362458",
-})
-reateSection("Server")
 MiscTab:CreateButton({
    Name = "Rejoin Game",
    Callback = function()
