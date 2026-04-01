@@ -302,6 +302,27 @@ end
 
 -- Misc Tab
 local MiscTab = Window:CreateTab("Misc", 4483362458) -- Settings/Misc Icon
+
+MiscTab:CreateSection("Character")
+if Invisibility then
+    MiscTab:CreateToggle({
+       Name = "FE Invisibility (Undetected)",
+       CurrentValue = false,
+       Flag = "InvisibilityToggle",
+       Callback = function(Value)
+          Invisibility:Toggle(Value)
+          if not Value then
+             Rayfield:Notify({
+                Title = "Invisibility Disabled",
+                Content = "Note: You may need to Reset/Respawn to become visible to others again.",
+                Duration = 5,
+                Image = "rbxassetid://4483362458",
+             })
+          end
+       end,
+    })
+end
+
 MiscTab:CreateSection("Server")
 MiscTab:CreateButton({
    Name = "Rejoin Game",

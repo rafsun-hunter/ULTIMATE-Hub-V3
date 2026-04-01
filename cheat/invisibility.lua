@@ -1,56 +1,75 @@
--- Universal Invisibility Module for ULTIMATE Script
+-- Premium FE Invisibility Module for ULTIMATE Script
+-- This method uses the HumanoidRootPart replacement trick to hide from others.
 local InvisibilityModule = {
     Enabled = false,
-    StoredCharacter = nil,
-    OldParent = nil,
-    Connection = nil
+    Character = nil,
+    RootPart = nil,
+    StoredPosition = nil,
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
 
 function InvisibilityModule:Toggle(value)
+    if self.Enabled == value then return end
     self.Enabled = value
+    
     local char = LocalPlayer.Character
-    if not char then return end
+    if not char then 
+        self.Enabled = false
+        return 
+    end
 
     if self.Enabled then
-        -- Method: Local Character Spoofing
-        -- This hides your character from most server-side and client-side entity checks
-        self.StoredCharacter = char
-        self.OldParent = char.Parent
+        -- Store character and current position
+        self.Character = char
+        self.RootPart = char:FindFirstChild("HumanoidRootPart")
         
-        -- Set character property to nil locally
-        LocalPlayer.Character = nil
-        
-        -- Move real character to a safe location or keep it but hide it
-        -- We'll hide it in a folder that many scripts don't check
-        char.Parent = game:GetService("Lighting")
-        
-        -- Keep camera focused on where the character WAS (or a proxy)
-        self.Connection = RunService.RenderStepped:Connect(function()
-            if self.Enabled then
-                Camera.CameraSubject = char:FindFirstChildOfClass("Humanoid")
-            end
-        end)
-        
-        print("ULTIMATE Hub | Invisibility Enabled (Character spoofed)")
-    else
-        -- Restore Character
-        if self.StoredCharacter then
-            self.StoredCharacter.Parent = self.OldParent or workspace
-            LocalPlayer.Character = self.StoredCharacter
-            
-            if self.Connection then
-                self.Connection:Disconnect()
-                self.Connection = nil
-            end
-            
-            Camera.CameraSubject = self.StoredCharacter:FindFirstChildOfClass("Humanoid")
+        if not self.RootPart then
+            warn("ULTIMATE Hub | HumanoidRootPart not found for Invisibility")
+            self.Enabled = false
+            return
         end
-        print("ULTIMATE Hub | Invisibility Disabled")
+        
+        self.StoredPosition = self.RootPart.CFrame
+        
+        -- Process:
+        -- 1. Create a platform locally so we don't fall while transitioning
+        local platform = Instance.new("Part")
+        platform.Size = Vector3.new(10, 1, 10)
+        platform.Anchored = true
+        platform.CanCollide = true
+        platform.Transparency = 1
+        platform.CFrame = self.StoredPosition * CFrame.new(0, -3.5, 0)
+        platform.Parent = workspace
+        
+        -- 2. Clone the RootPart
+        local newRoot = self.RootPart:Clone()
+        
+        -- 3. Destroy original (Breaks server replication of your position)
+        self.RootPart:Destroy()
+        
+        -- 4. Set new RootPart
+        newRoot.Parent = char
+        newRoot.CFrame = self.StoredPosition
+        
+        -- 5. Restore Humanoid focus
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            workspace.CurrentCamera.CameraSubject = humanoid
+        end
+        
+        -- Cleanup platform
+        task.delay(1, function() platform:Destroy() end)
+        
+        print("ULTIMATE Hub | FE Invisibility Enabled")
+    else
+        -- Restore: FE Invisibility usually requires a reset to sync back with the server.
+        print("ULTIMATE Hub | Invisibility Disabled (Reset to sync with server)")
+        
+        -- Try to notify the user via print if they don't have a UI notification handler here
+        -- The UI handles the notification in main.lua
     end
 end
 
