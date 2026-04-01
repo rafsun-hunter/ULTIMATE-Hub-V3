@@ -1,22 +1,20 @@
--- Premium FE Void Invisibility Module for ULTIMATE Script
--- This method teleports character parts (Head, Torso, Arms, Legs) to a 
--- remote location while keeping the HumanoidRootPart local.
--- This ensures you are invisible to others while maintaining full 
--- interaction support (picking up items, carrying tools).
+-- Premium FE Invisibility Module (Advanced Seat Method) for ULTIMATE Script
+-- This method exploits seat replication to hide you from others.
+-- Includes a "Proxy Touch" loop to fix the item pickup issue.
 
 local InvisibilityModule = {
     Enabled = false,
-    StoredParts = {},
-    VoidPosition = Vector3.new(0, 10000, 0), -- High in the sky
-    Transparency = 0.5, -- Local ghost effect
-    Connection = nil
+    CurrentSeat = nil,
+    StagingPos = Vector3.new(0, 5000, 0),
+    Transparency = 0.5,
+    Connections = {}
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
-local function setTransparency(char, amount)
+local function setCharacterTransparency(char, amount)
     for _, part in pairs(char:GetDescendants()) do
         if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
             part.Transparency = amount
@@ -37,53 +35,86 @@ function InvisibilityModule:Toggle(value)
     end
 
     local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then 
+    local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+
+    if not (root and torso and hum) then
+        warn("ULTIMATE Hub | Required character parts missing for Invisibility")
         self.Enabled = false
-        return 
+        return
     end
 
     if self.Enabled then
-        -- ENABLE INVISIBILITY
-        -- We don't destroy parts, we just move them away from the root locally.
-        -- On the server, since the joints (Welds/Motor6Ds) are still active,
-        -- but the parts are offset, it often breaks replication for other clients.
+        -- ENABLE
+        if self.CurrentSeat then self.CurrentSeat:Destroy() end
         
-        self.Connection = RunService.RenderStepped:Connect(function()
-            if not self.Enabled or not char or not root then 
-                if self.Connection then self.Connection:Disconnect() end
-                return 
-            end
-            
-            -- Keep parts in the void locally
-            for _, part in pairs(char:GetChildren()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    part.CanCollide = false
-                    -- Offset parts to void
-                    part.CFrame = CFrame.new(self.VoidPosition)
+        local originalCFrame = root.CFrame
+        
+        -- 1. Create Local Seat
+        self.CurrentSeat = Instance.new("Seat")
+        self.CurrentSeat.Name = "ULTIMATE_InvisSeat"
+        self.CurrentSeat.Transparency = 1
+        self.CurrentSeat.CanCollide = false
+        self.CurrentSeat.Anchored = false
+        self.CurrentSeat.CFrame = originalCFrame
+        self.CurrentSeat.Parent = workspace
+        
+        -- 2. Weld Torso to Seat (Physics Exploit)
+        local weld = Instance.new("Weld")
+        weld.Name = "ULTIMATE_InvisWeld"
+        weld.Part0 = self.CurrentSeat
+        weld.Part1 = torso
+        weld.C0 = CFrame.new(0, 0, 0)
+        weld.Parent = self.CurrentSeat
+        
+        -- 3. Move character to staging briefly to force replication break
+        root.CFrame = CFrame.new(self.StagingPos)
+        task.wait(0.15)
+        
+        -- 4. Move Seat (and character) back to original spot
+        self.CurrentSeat.CFrame = originalCFrame
+        
+        -- 5. Visuals (Local Only)
+        setCharacterTransparency(char, self.Transparency)
+        
+        -- 6. ITEM PICKUP FIX (Proxy Touch)
+        -- Since sitting can disable Touched, we manually check for items
+        self.Connections.Pickup = RunService.Heartbeat:Connect(function()
+            if not self.Enabled then return end
+            for _, item in pairs(workspace:GetChildren()) do
+                -- Check for tools or items with a handle
+                if item:IsA("BackpackItem") or item:FindFirstChild("Handle") then
+                    local handle = item:FindFirstChild("Handle") or item
+                    if handle:IsA("BasePart") and (root.Position - handle.Position).Magnitude < 6 then
+                        -- Use firetouchinterest if available, else try physical touch
+                        if firetouchinterest then
+                            firetouchinterest(root, handle, 0)
+                            task.wait()
+                            firetouchinterest(root, handle, 1)
+                        else
+                            -- Fallback: Move handle to us briefly
+                            handle.CFrame = root.CFrame
+                        end
+                    end
                 end
             end
-            
-            -- Local Ghost Effect (so you can see where you are)
-            -- We create a local ghost if needed, but for now just use transparency
-            setTransparency(char, self.Transparency)
         end)
         
-        print("ULTIMATE Hub | FE Void Invisibility Enabled (Full Interaction)")
+        print("ULTIMATE Hub | FE Invisibility (Seat Method + Pickup Fix) Enabled")
     else
-        -- DISABLE INVISIBILITY
-        if self.Connection then
-            self.Connection:Disconnect()
-            self.Connection = nil
+        -- DISABLE
+        for _, conn in pairs(self.Connections) do conn:Disconnect() end
+        self.Connections = {}
+        
+        if self.CurrentSeat then
+            self.CurrentSeat:Destroy()
+            self.CurrentSeat = nil
         end
         
-        -- Restore parts to their natural positions relative to root
-        -- Most Roblox joints will auto-snap back when CFrame overrides stop
-        setTransparency(char, 0)
-        
-        -- Force a character refresh/small move to snap parts back
+        setCharacterTransparency(char, 0)
         root.CFrame = root.CFrame * CFrame.new(0, 0.1, 0)
         
-        print("ULTIMATE Hub | FE Void Invisibility Disabled")
+        print("ULTIMATE Hub | FE Invisibility Disabled")
     end
 end
 
