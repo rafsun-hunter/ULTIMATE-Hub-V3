@@ -37,6 +37,7 @@ local Magic = loadModule("cheat/magic.lua")
 local Jump = loadModule("cheat/jump.lua")
 local Radar = loadModule("cheat/radar.lua")
 local Run = loadModule("cheat/run.lua")
+local Invisibility = loadModule("cheat/invisibility.lua")
 
 print("ULTIMATE Hub | Creating Window...")
 local Window = Rayfield:CreateWindow({
@@ -273,6 +274,25 @@ end
 
 -- Misc Tab
 local MiscTab = Window:CreateTab("Misc", 4483362458) -- Settings/Misc Icon
+MiscTab:CreateSection("Server")
+MiscTab:CreateButton({
+   Name = "Rejoin Game",
+   Callback = function()
+      local ts = game:GetService("TeleportService")
+      local p = game:GetService("Players").LocalPlayer
+      ts:Teleport(game.PlaceId, p)
+   end,
+})
+
+print("ULTIMATE Hub | Finished Loading")
+
+Rayfield:Notify({
+   Title = "ULTIMATE HUB V3",
+   Content = "Premium ESP & Fly Modules Loaded!",
+   Duration = 5,
+   Image = "rbxassetid://4483362458",
+})
+on
 MiscTab:CreateSection("Server")
 MiscTab:CreateButton({
    Name = "Rejoin Game",
