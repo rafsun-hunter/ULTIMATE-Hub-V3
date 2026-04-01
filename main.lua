@@ -292,22 +292,3 @@ Rayfield:Notify({
    Duration = 5,
    Image = "rbxassetid://4483362458",
 })
-on
-MiscTab:CreateSection("Server")
-MiscTab:CreateButton({
-   Name = "Rejoin Game",
-   Callback = function()
-      local ts = game:GetService("TeleportService")
-      local p = game:GetService("Players").LocalPlayer
-      ts:Teleport(game.PlaceId, p)
-   end,
-})
-
-print("ULTIMATE Hub | Finished Loading")
-
-Rayfield:Notify({
-   Title = "ULTIMATE HUB V3",
-   Content = "Premium ESP & Fly Modules Loaded!",
-   Duration = 5,
-   Image = "rbxassetid://4483362458",
-})
