@@ -1,21 +1,20 @@
--- Premium FE Ghost Mode Module for ULTIMATE Script
--- This method creates a "Fake" character for local control and keeps the 
--- "Real" character (invisible) at the same position for server-side interaction.
--- This allows for full interaction, picking up items, and carrying tools.
+-- Premium FE Void Invisibility Module for ULTIMATE Script
+-- This method teleports character parts (Head, Torso, Arms, Legs) to a 
+-- remote location while keeping the HumanoidRootPart local.
+-- This ensures you are invisible to others while maintaining full 
+-- interaction support (picking up items, carrying tools).
 
-local GhostModule = {
+local InvisibilityModule = {
     Enabled = false,
-    FakeCharacter = nil,
-    RealCharacter = nil,
-    Connection = nil,
-    Transparency = 0.5 -- Ghostly look for local player
+    StoredParts = {},
+    VoidPosition = Vector3.new(0, 10000, 0), -- High in the sky
+    Transparency = 0.5, -- Local ghost effect
+    Connection = nil
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
 
 local function setTransparency(char, amount)
     for _, part in pairs(char:GetDescendants()) do
@@ -27,7 +26,7 @@ local function setTransparency(char, amount)
     end
 end
 
-function GhostModule:Toggle(value)
+function InvisibilityModule:Toggle(value)
     if self.Enabled == value then return end
     self.Enabled = value
     
@@ -37,75 +36,55 @@ function GhostModule:Toggle(value)
         return 
     end
 
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then 
+        self.Enabled = false
+        return 
+    end
+
     if self.Enabled then
-        -- ENABLE GHOST MODE
-        self.RealCharacter = char
-        self.RealCharacter.Archivable = true
+        -- ENABLE INVISIBILITY
+        -- We don't destroy parts, we just move them away from the root locally.
+        -- On the server, since the joints (Welds/Motor6Ds) are still active,
+        -- but the parts are offset, it often breaks replication for other clients.
         
-        local root = char:FindFirstChild("HumanoidRootPart")
-        if not root then 
-            self.Enabled = false
-            return 
-        end
-        
-        local oldCF = root.CFrame
-        
-        -- 1. Create Fake Character for local control
-        self.FakeCharacter = self.RealCharacter:Clone()
-        self.FakeCharacter.Name = "ULTIMATE_GHOST"
-        self.FakeCharacter.Parent = Workspace
-        
-        -- 2. Make Real Character invisible to others
-        -- By setting transparency locally, others still see it (unless using a desync)
-        -- To truly be invisible, we use the 'nil parent' trick for the real character parts
-        -- but keep the root in workspace for interaction.
-        setTransparency(self.RealCharacter, 1)
-        
-        -- 3. Set local control to Fake Character
-        LocalPlayer.Character = self.FakeCharacter
-        Camera.CameraSubject = self.FakeCharacter:FindFirstChildOfClass("Humanoid")
-        
-        -- 4. Sync Real Character to Fake Character for Interaction
         self.Connection = RunService.RenderStepped:Connect(function()
-            if not self.FakeCharacter or not self.FakeCharacter:FindFirstChild("HumanoidRootPart") then
-                self:Toggle(false)
-                return
+            if not self.Enabled or not char or not root then 
+                if self.Connection then self.Connection:Disconnect() end
+                return 
             end
             
-            local fakeRoot = self.FakeCharacter.HumanoidRootPart
-            local realRoot = self.RealCharacter:FindFirstChild("HumanoidRootPart")
-            
-            if realRoot then
-                realRoot.CFrame = fakeRoot.CFrame
+            -- Keep parts in the void locally
+            for _, part in pairs(char:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = false
+                    -- Offset parts to void
+                    part.CFrame = CFrame.new(self.VoidPosition)
+                end
             end
             
-            -- Keep real character parts invisible
-            setTransparency(self.RealCharacter, 1)
-            -- Keep fake character ghostly
-            setTransparency(self.FakeCharacter, self.Transparency)
+            -- Local Ghost Effect (so you can see where you are)
+            -- We create a local ghost if needed, but for now just use transparency
+            setTransparency(char, self.Transparency)
         end)
         
-        print("ULTIMATE Hub | FE Ghost Mode Enabled (Full Interaction)")
+        print("ULTIMATE Hub | FE Void Invisibility Enabled (Full Interaction)")
     else
-        -- DISABLE GHOST MODE
+        -- DISABLE INVISIBILITY
         if self.Connection then
             self.Connection:Disconnect()
             self.Connection = nil
         end
         
-        if self.FakeCharacter then
-            self.FakeCharacter:Destroy()
-            self.FakeCharacter = nil
-        end
+        -- Restore parts to their natural positions relative to root
+        -- Most Roblox joints will auto-snap back when CFrame overrides stop
+        setTransparency(char, 0)
         
-        if self.RealCharacter then
-            LocalPlayer.Character = self.RealCharacter
-            setTransparency(self.RealCharacter, 0)
-            Camera.CameraSubject = self.RealCharacter:FindFirstChildOfClass("Humanoid")
-        end
+        -- Force a character refresh/small move to snap parts back
+        root.CFrame = root.CFrame * CFrame.new(0, 0.1, 0)
         
-        print("ULTIMATE Hub | FE Ghost Mode Disabled")
+        print("ULTIMATE Hub | FE Void Invisibility Disabled")
     end
 end
 
-return GhostModule
+return InvisibilityModule
