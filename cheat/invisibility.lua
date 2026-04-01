@@ -1,15 +1,26 @@
--- Premium FE Invisibility Module for ULTIMATE Script
--- This method uses the HumanoidRootPart replacement trick to hide from others.
+-- Premium FE Invisibility Module (Seat Method) for ULTIMATE Script
+-- This method allows for character interaction (grabbing items, prompts) 
+-- while remaining invisible to other players and NPCs in most FE games.
 local InvisibilityModule = {
     Enabled = false,
-    Character = nil,
-    RootPart = nil,
-    StoredPosition = nil,
+    CurrentSeat = nil,
+    StagingPos = Vector3.new(0, 5000, 0), -- Setup area
+    Transparency = 0.5 -- Local ghost effect
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+
+local function setCharacterTransparency(char, amount)
+    for _, part in pairs(char:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+            part.Transparency = amount
+        elseif part:IsA("Decal") then
+            part.Transparency = amount
+        end
+    end
+end
 
 function InvisibilityModule:Toggle(value)
     if self.Enabled == value then return end
@@ -21,55 +32,71 @@ function InvisibilityModule:Toggle(value)
         return 
     end
 
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+
+    if not (root and torso and hum) then
+        warn("ULTIMATE Hub | Required character parts missing for Invisibility")
+        self.Enabled = false
+        return
+    end
+
     if self.Enabled then
-        -- Store character and current position
-        self.Character = char
-        self.RootPart = char:FindFirstChild("HumanoidRootPart")
+        -- ENABLE
+        if self.CurrentSeat then self.CurrentSeat:Destroy() end
         
-        if not self.RootPart then
-            warn("ULTIMATE Hub | HumanoidRootPart not found for Invisibility")
-            self.Enabled = false
-            return
-        end
+        local originalCFrame = root.CFrame
         
-        self.StoredPosition = self.RootPart.CFrame
+        -- 1. Create Local Seat
+        self.CurrentSeat = Instance.new("Seat")
+        self.CurrentSeat.Name = "ULTIMATE_InvisSeat"
+        self.CurrentSeat.Transparency = 1
+        self.CurrentSeat.CanCollide = false
+        self.CurrentSeat.Anchored = false
+        self.CurrentSeat.CFrame = originalCFrame
+        self.CurrentSeat.Parent = workspace
         
-        -- Process:
-        -- 1. Create a platform locally so we don't fall while transitioning
-        local platform = Instance.new("Part")
-        platform.Size = Vector3.new(10, 1, 10)
-        platform.Anchored = true
-        platform.CanCollide = true
-        platform.Transparency = 1
-        platform.CFrame = self.StoredPosition * CFrame.new(0, -3.5, 0)
-        platform.Parent = workspace
+        -- 2. Weld Torso to Seat (Physics Exploit)
+        local weld = Instance.new("Weld")
+        weld.Name = "ULTIMATE_InvisWeld"
+        weld.Part0 = self.CurrentSeat
+        weld.Part1 = torso
+        weld.C0 = CFrame.new(0, 0, 0)
+        weld.Parent = self.CurrentSeat
         
-        -- 2. Clone the RootPart
-        local newRoot = self.RootPart:Clone()
+        -- 3. Move character to staging briefly to force replication break
+        -- Many FE games lose track of the character model here
+        root.CFrame = CFrame.new(self.StagingPos)
+        task.wait(0.15)
         
-        -- 3. Destroy original (Breaks server replication of your position)
-        self.RootPart:Destroy()
+        -- 4. Move Seat (and character) back to original spot
+        self.CurrentSeat.CFrame = originalCFrame
         
-        -- 4. Set new RootPart
-        newRoot.Parent = char
-        newRoot.CFrame = self.StoredPosition
+        -- 5. Visuals (Local Only)
+        setCharacterTransparency(char, self.Transparency)
         
-        -- 5. Restore Humanoid focus
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            workspace.CurrentCamera.CameraSubject = humanoid
-        end
-        
-        -- Cleanup platform
-        task.delay(1, function() platform:Destroy() end)
-        
-        print("ULTIMATE Hub | FE Invisibility Enabled")
+        print("ULTIMATE Hub | FE Invisibility (Interaction Support) Enabled")
     else
-        -- Restore: FE Invisibility usually requires a reset to sync back with the server.
-        print("ULTIMATE Hub | Invisibility Disabled (Reset to sync with server)")
+        -- DISABLE
+        if self.CurrentSeat then
+            self.CurrentSeat:Destroy()
+            self.CurrentSeat = nil
+        end
         
-        -- Try to notify the user via print if they don't have a UI notification handler here
-        -- The UI handles the notification in main.lua
+        setCharacterTransparency(char, 0)
+        
+        -- Force a small teleport to "wake up" the server's replication
+        root.CFrame = root.CFrame * CFrame.new(0, 0.1, 0)
+        
+        print("ULTIMATE Hub | FE Invisibility Disabled")
+    end
+end
+
+function InvisibilityModule:SetTransparency(value)
+    self.Transparency = value
+    if self.Enabled and LocalPlayer.Character then
+        setCharacterTransparency(LocalPlayer.Character, value)
     end
 end
 
