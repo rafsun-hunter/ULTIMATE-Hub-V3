@@ -2,18 +2,46 @@ local repo = "https://raw.githubusercontent.com/rafsun-hunter/ULTIMATE-Hub-V3/ma
 
 print("ULTIMATE Hub | Initializing...")
 
--- Load official Rayfield Library from Sirius
-local RayfieldSource = game:HttpGet('https://sirius.menu/rayfield')
-local RayfieldFunc, RayfieldErr = loadstring(RayfieldSource)
-if not RayfieldFunc then
-    error("ULTIMATE Hub | Failed to load Rayfield: " .. tostring(RayfieldErr))
+-- Load Rayfield Library (with fallback)
+local function getRayfield()
+    local officialUrl = 'https://sirius.menu/rayfield'
+    local fallbackUrl = repo .. "source.lua"
+    
+    print("ULTIMATE Hub | Fetching Rayfield...")
+    local success, source = pcall(game.HttpGet, game, officialUrl)
+    if not success or not source or #source < 1000 then
+        warn("ULTIMATE Hub | Failed to load from sirius.menu, trying fallback...")
+        success, source = pcall(game.HttpGet, game, fallbackUrl)
+    end
+    
+    if not success or not source or #source < 1000 then
+        error("ULTIMATE Hub | Critical Error: Could not load Rayfield Library from any source.")
+    end
+    
+    local func, err = loadstring(source)
+    if not func then
+        error("ULTIMATE Hub | Rayfield Syntax Error: " .. tostring(err))
+    end
+    
+    local ok, lib = pcall(func)
+    if not ok then
+        error("ULTIMATE Hub | Rayfield Runtime Error: " .. tostring(lib))
+    end
+    
+    return lib
 end
-local Rayfield = RayfieldFunc()
+
+local Rayfield = getRayfield()
 print("ULTIMATE Hub | Rayfield Loaded")
 
 local function loadModule(path)
     print("ULTIMATE Hub | Loading module: " .. path)
-    local source = game:HttpGet(repo .. path)
+    local success, source = pcall(game.HttpGet, game, repo .. path)
+    if not success then
+        warn("ULTIMATE Hub | Failed to fetch module " .. path .. ": " .. tostring(source))
+        return nil
+    end
+    
     local func, err = loadstring(source)
     if func then
         local success, result = pcall(func)
@@ -42,8 +70,8 @@ local Invisibility = loadModule("cheat/invisibility.lua")
 print("ULTIMATE Hub | Creating Window...")
 local Window = Rayfield:CreateWindow({
    Name = "ULTIMATE HUB V3",
-   LoadingTitle = "Rayfield Interface Suite",
-   LoadingSubtitle = "by Sirius",
+   LoadingTitle = "ULTIMATE Hub V3",
+   LoadingSubtitle = "by rafsun-hunter",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "UltimateHubV3",

@@ -40,7 +40,7 @@ local function CreateBlip(player)
     local blip = {
         Point = Drawing.new("Circle"),
         Label = Drawing.new("Text"),
-        Icon = Drawing.new("Image")
+        Icon = nil
     }
     
     blip.Point.Radius = 5
@@ -53,27 +53,31 @@ local function CreateBlip(player)
     blip.Label.Color = Color3.fromRGB(255, 255, 255)
     blip.Label.Visible = false
     
-    blip.Icon.Size = Vector2.new(20, 20)
-    blip.Icon.Rounding = 10 
-    blip.Icon.Visible = false
-    
-    -- Robust icon loading for Android/Windows executors
-    task.spawn(function()
-        local headshotUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=48&height=48&format=png"
-        local success, data = pcall(function() return game:HttpGet(headshotUrl) end)
-        if success then
-            blip.Icon.Data = data
-        end
-    end)
+    -- Check for Image support (Extension)
+    local hasImageSupport, imageObj = pcall(function() return Drawing.new("Image") end)
+    if hasImageSupport and imageObj then
+        blip.Icon = imageObj
+        blip.Icon.Size = Vector2.new(20, 20)
+        blip.Icon.Rounding = 10 
+        blip.Icon.Visible = false
+        
+        task.spawn(function()
+            local headshotUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=48&height=48&format=png"
+            local success, data = pcall(function() return game:HttpGet(headshotUrl) end)
+            if success and blip.Icon then
+                blip.Icon.Data = data
+            end
+        end)
+    end
     
     blips[player] = blip
 end
 
 local function RemoveBlip(player)
     if blips[player] then
-        blips[player].Point:Remove()
-        blips[player].Label:Remove()
-        blips[player].Icon:Remove()
+        if blips[player].Point then blips[player].Point:Remove() end
+        if blips[player].Label then blips[player].Label:Remove() end
+        if blips[player].Icon then blips[player].Icon:Remove() end
         blips[player] = nil
     end
 end
@@ -116,7 +120,7 @@ RunService.RenderStepped:Connect(function()
                 if radarRelPos.Magnitude < RadarModule.Radius then
                     local finalPos = screenCenter + Vector2.new(radarRelPos.X, radarRelPos.Y)
                     
-                    if RadarModule.ShowIcons then
+                    if RadarModule.ShowIcons and blip.Icon then
                         blip.Icon.Position = finalPos - (blip.Icon.Size / 2)
                         blip.Icon.Visible = true
                         blip.Point.Visible = false
@@ -124,7 +128,7 @@ RunService.RenderStepped:Connect(function()
                         blip.Point.Position = finalPos
                         blip.Point.Color = player.TeamColor.Color
                         blip.Point.Visible = true
-                        blip.Icon.Visible = false
+                        if blip.Icon then blip.Icon.Visible = false end
                     end
                     
                     blip.Label.Text = string.format("%dm", math.floor(distance))
@@ -133,12 +137,12 @@ RunService.RenderStepped:Connect(function()
                 else
                     blip.Point.Visible = false
                     blip.Label.Visible = false
-                    blip.Icon.Visible = false
+                    if blip.Icon then blip.Icon.Visible = false end
                 end
             else
                 blip.Point.Visible = false
                 blip.Label.Visible = false
-                blip.Icon.Visible = false
+                if blip.Icon then blip.Icon.Visible = false end
             end
         end
     else
@@ -148,7 +152,7 @@ RunService.RenderStepped:Connect(function()
         for _, blip in pairs(blips) do
             blip.Point.Visible = false
             blip.Label.Visible = false
-            blip.Icon.Visible = false
+            if blip.Icon then blip.Icon.Visible = false end
         end
     end
 end)
