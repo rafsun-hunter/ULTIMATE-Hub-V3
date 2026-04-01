@@ -54,4 +54,5 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/rafsun-hunter/ULTIMAT
 ---
 
 ## 📜 License
-This project is for educational and personal use. Please respect the original creators' work.
+**All Rights Reserved.**
+This project is the sole property of **rafsun-hunter**. No permission is granted to use, copy, modify, or distribute this software in any form or for any purpose without explicit written consent from the author.
