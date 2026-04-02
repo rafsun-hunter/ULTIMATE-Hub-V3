@@ -28,7 +28,7 @@ end
 
 local Rayfield = getRayfield()
 
--- Global Notification Helper for Login Module
+-- Global Notification Helper
 _G.ULTIMATE_NOTIFY = function(msg)
     Rayfield:Notify({
         Title = "ULTIMATE HUB V3",
@@ -75,6 +75,8 @@ local function InitializeHub()
     local Radar = loadModule("cheat/radar.lua")
     local Run = loadModule("cheat/run.lua")
     local Invisibility = loadModule("cheat/invisibility.lua")
+    local Stamina = loadModule("cheat/stamina.lua")
+    local AutoFarm = loadModule("cheat/autofarm.lua")
 
     -- Combat Tab
     local CombatTab = Window:CreateTab("Combat", 4483362458)
@@ -129,6 +131,39 @@ local function InitializeHub()
         MovementTab:CreateSlider({ Name = "Jump Power", Range = {1, 2000}, Increment = 1, Suffix = "Power", CurrentValue = 50, Flag = "JumpPower", Callback = function(Value) Jump:SetJumpPower(Value) end })
     end
 
+    -- Auto-Farm Tab
+    local AutoFarmTab = Window:CreateTab("Auto-Farm", 4483362458)
+    if AutoFarm then
+        AutoFarmTab:CreateSection("Universal Farm")
+        AutoFarmTab:CreateToggle({
+           Name = "Auto Clicker",
+           CurrentValue = false,
+           Flag = "AutoClicker",
+           Callback = function(Value) AutoFarm:ToggleAutoClick(Value) end,
+        })
+        AutoFarmTab:CreateToggle({
+           Name = "Auto Collect Nearby Items",
+           CurrentValue = false,
+           Flag = "AutoCollect",
+           Callback = function(Value) AutoFarm:ToggleAutoCollect(Value) end,
+        })
+        AutoFarmTab:CreateSlider({
+           Name = "Collection Range",
+           Range = {10, 500},
+           Increment = 10,
+           Suffix = "Studs",
+           CurrentValue = 50,
+           Flag = "FarmRange",
+           Callback = function(Value) AutoFarm:SetRange(Value) end,
+        })
+        AutoFarmTab:CreateInput({
+           Name = "Target Item Name",
+           PlaceholderText = "Empty = All Items",
+           RemoveTextAfterFocusLost = false,
+           Callback = function(Text) AutoFarm:SetTarget(Text) end,
+        })
+    end
+
     -- Teleport Tab
     local TeleportTab = Window:CreateTab("Teleport", 4483345998)
     if Teleport then
@@ -145,8 +180,8 @@ local function InitializeHub()
 
     -- Misc Tab
     local MiscTab = Window:CreateTab("Misc", 4483362458)
+    MiscTab:CreateSection("Character")
     if Invisibility then
-        MiscTab:CreateSection("Character")
         MiscTab:CreateToggle({
            Name = "FE Invisibility (Undetected)",
            CurrentValue = false,
@@ -157,6 +192,15 @@ local function InitializeHub()
            end,
         })
     end
+    if Stamina then
+        MiscTab:CreateToggle({
+           Name = "Infinite Stamina/Energy",
+           CurrentValue = false,
+           Flag = "InfStamina",
+           Callback = function(Value) Stamina:Toggle(Value) end,
+        })
+    end
+    
     MiscTab:CreateSection("Server")
     MiscTab:CreateButton({
        Name = "Rejoin Game",
@@ -170,30 +214,30 @@ local function InitializeHub()
     print("ULTIMATE Hub | Finished Loading Features")
 end
 
--- Login Tab (Only tab visible initially)
-local LoginTab = Window:CreateTab("Login", 4483362458)
+-- Login Tab (Setup)
+local LoginTab = Window:CreateTab("Setup", 4483362458)
 LoginTab:CreateSection("Key System")
 local KeyInput = ""
 LoginTab:CreateInput({
    Name = "Enter Key",
-   PlaceholderText = "Paste key here...",
+   PlaceholderText = "Paste your key here...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text) KeyInput = Text end,
 })
 
 local isLoggedIn = false
 LoginTab:CreateButton({
-   Name = "Login / Verify",
+   Name = "Verify & Login",
    Callback = function()
       if isLoggedIn then 
-         _G.ULTIMATE_NOTIFY("Already logged in!")
+         _G.ULTIMATE_NOTIFY("Access already granted.")
          return 
       end
       if Login then
          local success = Login:Verify(KeyInput)
          if success then
             isLoggedIn = true
-            _G.ULTIMATE_NOTIFY("Access Granted! Welcome, rafsunboss.")
+            _G.ULTIMATE_NOTIFY("Success! Welcome, rafsunboss.")
             InitializeHub()
          end
       end
@@ -207,11 +251,15 @@ LoginTab:CreateButton({
          local success, link = Login:GetLink()
          if success then
             setclipboard(link)
-            _G.ULTIMATE_NOTIFY("Key link copied to clipboard!")
+            _G.ULTIMATE_NOTIFY("Platoboost link copied! Paste in browser.")
          end
       end
    end,
 })
 
-print("ULTIMATE Hub | Ready for Login")
-_G.ULTIMATE_NOTIFY("Welcome to ULTIMATE HUB V3 | rafsunboss. Please login to access features.")
+LoginTab:CreateSection("Info")
+LoginTab:CreateLabel("Creator: rafsunboss")
+LoginTab:CreateLabel("Status: Secure")
+
+print("ULTIMATE Hub | Ready for Setup")
+_G.ULTIMATE_NOTIFY("ULTIMATE HUB V3 | Please verify your key in the Setup tab.")
