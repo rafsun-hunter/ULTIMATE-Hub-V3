@@ -7,7 +7,6 @@ local function getRayfield()
     local officialUrl = 'https://sirius.menu/rayfield'
     local fallbackUrl = repo .. "source.lua"
     
-    print("ULTIMATE Hub | Fetching Rayfield...")
     local success, source = pcall(game.HttpGet, game, officialUrl)
     if not success or not source or #source < 1000 then
         warn("ULTIMATE Hub | Failed to load from sirius.menu, trying fallback...")
@@ -19,44 +18,39 @@ local function getRayfield()
     end
     
     local func, err = loadstring(source)
-    if not func then
-        error("ULTIMATE Hub | Rayfield Syntax Error: " .. tostring(err))
-    end
+    if not func then error("ULTIMATE Hub | Rayfield Syntax Error: " .. tostring(err)) end
     
     local ok, lib = pcall(func)
-    if not ok then
-        error("ULTIMATE Hub | Rayfield Runtime Error: " .. tostring(lib))
-    end
+    if not ok then error("ULTIMATE Hub | Rayfield Runtime Error: " .. tostring(lib)) end
     
     return lib
 end
 
 local Rayfield = getRayfield()
-print("ULTIMATE Hub | Rayfield Loaded")
+
+-- Global Notification Helper for Login Module
+_G.ULTIMATE_NOTIFY = function(msg)
+    Rayfield:Notify({
+        Title = "ULTIMATE HUB V3",
+        Content = msg,
+        Duration = 5,
+        Image = "rbxassetid://4483362458",
+    })
+end
 
 local function loadModule(path)
-    print("ULTIMATE Hub | Loading module: " .. path)
     local success, source = pcall(game.HttpGet, game, repo .. path)
-    if not success then
-        warn("ULTIMATE Hub | Failed to fetch module " .. path .. ": " .. tostring(source))
-        return nil
-    end
-    
+    if not success then return nil end
     local func, err = loadstring(source)
     if func then
         local success, result = pcall(func)
-        if success then 
-            print("ULTIMATE Hub | Module loaded successfully: " .. path)
-            return result 
-        end
-        warn("ULTIMATE Hub | Runtime error in module " .. path .. ": " .. tostring(result))
-    else
-        warn("ULTIMATE Hub | Syntax error in module " .. path .. ": " .. tostring(err))
+        if success then return result end
     end
     return nil
 end
 
--- Load Modular Cheats
+-- Load Modules
+local Login = loadModule("cheat/login.lua")
 local Fly = loadModule("cheat/fly.lua")
 local Aimbot = loadModule("cheat/aimbot.lua")
 local ESP = loadModule("cheat/esp.lua")
@@ -67,219 +61,118 @@ local Radar = loadModule("cheat/radar.lua")
 local Run = loadModule("cheat/run.lua")
 local Invisibility = loadModule("cheat/invisibility.lua")
 
-print("ULTIMATE Hub | Creating Window...")
 local Window = Rayfield:CreateWindow({
-   Name = "ULTIMATE HUB V3",
+   Name = "ULTIMATE HUB V3 | rafsunboss",
    LoadingTitle = "ULTIMATE Hub V3",
    LoadingSubtitle = "by rafsun-hunter",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "UltimateHubV3",
-      FileName = "Config"
-   },
-   Discord = {
-      Enabled = false,
-      Invite = "sirius",
-      RememberJoins = true
-   },
+   ConfigurationSaving = { Enabled = true, FolderName = "UltimateHubV3", FileName = "Config" },
    KeySystem = false
 })
 
--- Combat Tab
-local CombatTab = Window:CreateTab("Combat", 4483362458) -- Crosshair Icon
-if Aimbot then
-    CombatTab:CreateSection("Aimbot")
-    CombatTab:CreateToggle({
-       Name = "Enable Aimbot",
-       CurrentValue = false,
-       Flag = "AimbotToggle",
-       Callback = function(Value) Aimbot:Toggle(Value) end,
-    })
-    CombatTab:CreateToggle({
-       Name = "Auto-Lock (Mobile Friendly)",
-       CurrentValue = false,
-       Flag = "AimbotAutoLock",
-       Callback = function(Value) Aimbot:SetAutoLock(Value) end,
-    })
-    CombatTab:CreateSlider({
-       Name = "Aimbot FOV",
-       Range = {10, 500},
-       Increment = 1,
-       Suffix = "Radius",
-       CurrentValue = 100,
-       Flag = "AimbotFOV",
-       Callback = function(Value) Aimbot:SetFOV(Value) end,
-    })
+-- Login Tab
+local LoginTab = Window:CreateTab("Login", 4483362458)
+local MainTabs = {} -- Store tabs to hide/show
+
+LoginTab:CreateSection("Key System")
+local KeyInput = ""
+LoginTab:CreateInput({
+   Name = "Enter Key",
+   PlaceholderText = "Paste key here...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text) KeyInput = Text end,
+})
+
+LoginTab:CreateButton({
+   Name = "Login / Verify",
+   Callback = function()
+      if Login then
+         local success = Login:Verify(KeyInput)
+         if success then
+            _G.ULTIMATE_NOTIFY("Access Granted! Welcome, rafsunboss.")
+            -- Show other tabs
+            for _, tab in pairs(MainTabs) do tab:Show() end
+         end
+      end
+   end,
+})
+
+LoginTab:CreateButton({
+   Name = "Get Key (Copy Link)",
+   Callback = function()
+      if Login then
+         local success, link = Login:GetLink()
+         if success then
+            setclipboard(link)
+            _G.ULTIMATE_NOTIFY("Key link copied to clipboard!")
+         end
+      end
+   end,
+})
+
+-- Helper to create hidden tabs
+local function CreateMainTab(name, icon)
+    local tab = Window:CreateTab(name, icon)
+    table.insert(MainTabs, tab)
+    -- If using a Rayfield version that supports :Hide(), we'd call it here.
+    -- Otherwise, we manage visibility through sections or just wait for login.
+    return tab
 end
 
+-- Combat Tab
+local CombatTab = CreateMainTab("Combat", 4483362458)
+if Aimbot then
+    CombatTab:CreateSection("Aimbot")
+    CombatTab:CreateToggle({ Name = "Enable Aimbot", CurrentValue = false, Flag = "AimbotToggle", Callback = function(Value) Aimbot:Toggle(Value) end })
+    CombatTab:CreateToggle({ Name = "Auto-Lock (Mobile Friendly)", CurrentValue = false, Flag = "AimbotAutoLock", Callback = function(Value) Aimbot:SetAutoLock(Value) end })
+    CombatTab:CreateSlider({ Name = "Aimbot FOV", Range = {10, 500}, Increment = 1, Suffix = "Radius", CurrentValue = 100, Flag = "AimbotFOV", Callback = function(Value) Aimbot:SetFOV(Value) end })
+end
 if Magic then
     CombatTab:CreateSection("Magic (Hitbox)")
-    CombatTab:CreateToggle({
-       Name = "Enable Magic Hitbox",
-       CurrentValue = false,
-       Flag = "MagicToggle",
-       Callback = function(Value) Magic:Toggle(Value) end,
-    })
-    CombatTab:CreateSlider({
-       Name = "Hitbox Size",
-       Range = {2, 50},
-       Increment = 1,
-       Suffix = "Studs",
-       CurrentValue = 5,
-       Flag = "HitboxSize",
-       Callback = function(Value) Magic:SetSize(Value) end,
-    })
+    CombatTab:CreateToggle({ Name = "Enable Magic Hitbox", CurrentValue = false, Flag = "MagicToggle", Callback = function(Value) Magic:Toggle(Value) end })
+    CombatTab:CreateSlider({ Name = "Hitbox Size", Range = {2, 50}, Increment = 1, Suffix = "Studs", CurrentValue = 5, Flag = "HitboxSize", Callback = function(Value) Magic:SetSize(Value) end })
 end
 
 -- Visuals Tab
-local VisualsTab = Window:CreateTab("Visuals", 4483345998) -- Eye Icon
+local VisualsTab = CreateMainTab("Visuals", 4483345998)
 if ESP then
     VisualsTab:CreateSection("Premium ESP")
-    VisualsTab:CreateToggle({
-       Name = "Enable ESP",
-       CurrentValue = false,
-       Flag = "ESPToggle",
-       Callback = function(Value) ESP:Toggle(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "Player Count (Top)",
-       CurrentValue = true,
-       Flag = "ESPPlayerCount",
-       Callback = function(Value) ESP:SetPlayerCount(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Boxes (Outlined)",
-       CurrentValue = false,
-       Flag = "ESPBoxes",
-       Callback = function(Value) ESP:SetBoxes(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Box Fill",
-       CurrentValue = false,
-       Flag = "ESPBoxFill",
-       Callback = function(Value) ESP:SetBoxFill(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "Character Glow (Chams)",
-       CurrentValue = false,
-       Flag = "ESPGlow",
-       Callback = function(Value) ESP:SetGlow(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Names (Outlined)",
-       CurrentValue = false,
-       Flag = "ESPNames",
-       Callback = function(Value) ESP:SetNames(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Health (Bar + Text)",
-       CurrentValue = false,
-       Flag = "ESPHealth",
-       Callback = function(Value) ESP:SetHealth(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Tracers (Outlined)",
-       CurrentValue = false,
-       Flag = "ESPTracers",
-       Callback = function(Value) ESP:SetTracers(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "ESP Team Check",
-       CurrentValue = false,
-       Flag = "ESPTeamCheck",
-       Callback = function(Value) ESP:SetTeamCheck(Value) end,
-    })
+    VisualsTab:CreateToggle({ Name = "Enable ESP", CurrentValue = false, Flag = "ESPToggle", Callback = function(Value) ESP:Toggle(Value) end })
+    VisualsTab:CreateToggle({ Name = "Player Count (Top)", CurrentValue = true, Flag = "ESPPlayerCount", Callback = function(Value) ESP:SetPlayerCount(Value) end })
+    VisualsTab:CreateToggle({ Name = "ESP Boxes (Outlined)", CurrentValue = false, Flag = "ESPBoxes", Callback = function(Value) ESP:SetBoxes(Value) end })
+    VisualsTab:CreateToggle({ Name = "ESP Box Fill", CurrentValue = false, Flag = "ESPBoxFill", Callback = function(Value) ESP:SetBoxFill(Value) end })
+    VisualsTab:CreateToggle({ Name = "Character Glow (Chams)", CurrentValue = false, Flag = "ESPGlow", Callback = function(Value) ESP:SetGlow(Value) end })
+    VisualsTab:CreateToggle({ Name = "ESP Names (Outlined)", CurrentValue = false, Flag = "ESPNames", Callback = function(Value) ESP:SetNames(Value) end })
+    VisualsTab:CreateToggle({ Name = "ESP Health (Bar + Text)", CurrentValue = false, Flag = "ESPHealth", Callback = function(Value) ESP:SetHealth(Value) end })
+    VisualsTab:CreateToggle({ Name = "ESP Tracers (Outlined)", CurrentValue = false, Flag = "ESPTracers", Callback = function(Value) ESP:SetTracers(Value) end })
+    VisualsTab:CreateToggle({ Name = "ESP Team Check", CurrentValue = false, Flag = "ESPTeamCheck", Callback = function(Value) ESP:SetTeamCheck(Value) end })
 end
-
 if Radar then
     VisualsTab:CreateSection("2D Radar")
-    VisualsTab:CreateToggle({
-       Name = "Enable 2D Radar",
-       CurrentValue = false,
-       Flag = "RadarToggle",
-       Callback = function(Value) Radar:Toggle(Value) end,
-    })
-    VisualsTab:CreateSlider({
-       Name = "Radar Range",
-       Range = {50, 1000},
-       Increment = 10,
-       Suffix = "Studs",
-       CurrentValue = 200,
-       Flag = "RadarRange",
-       Callback = function(Value) Radar:SetRange(Value) end,
-    })
-    VisualsTab:CreateToggle({
-       Name = "Show Radar Icons",
-       CurrentValue = true,
-       Flag = "RadarIcons",
-       Callback = function(Value) Radar:ToggleIcons(Value) end,
-    })
+    VisualsTab:CreateToggle({ Name = "Enable 2D Radar", CurrentValue = false, Flag = "RadarToggle", Callback = function(Value) Radar:Toggle(Value) end })
+    VisualsTab:CreateSlider({ Name = "Radar Range", Range = {50, 1000}, Increment = 10, Suffix = "Studs", CurrentValue = 200, Flag = "RadarRange", Callback = function(Value) Radar:SetRange(Value) end })
+    VisualsTab:CreateToggle({ Name = "Show Radar Icons", CurrentValue = true, Flag = "RadarIcons", Callback = function(Value) Radar:ToggleIcons(Value) end })
 end
 
 -- Movement Tab
-local MovementTab = Window:CreateTab("Movement", 4483362135) -- Move Icon
+local MovementTab = CreateMainTab("Movement", 4483362135)
 if Fly then
     MovementTab:CreateSection("Premium Flight")
-    MovementTab:CreateToggle({
-       Name = "Enable Fly",
-       CurrentValue = false,
-       Flag = "FlyToggle",
-       Callback = function(Value) Fly:Toggle(Value) end,
-    })
-    MovementTab:CreateSlider({
-       Name = "Fly Speed",
-       Range = {1, 10},
-       Increment = 0.5,
-       Suffix = "x",
-       CurrentValue = 1,
-       Flag = "FlySpeed",
-       Callback = function(Value) Fly:SetSpeed(Value) end,
-    })
+    MovementTab:CreateToggle({ Name = "Enable Fly", CurrentValue = false, Flag = "FlyToggle", Callback = function(Value) Fly:Toggle(Value) end })
+    MovementTab:CreateSlider({ Name = "Fly Speed", Range = {1, 10}, Increment = 0.5, Suffix = "x", CurrentValue = 1, Flag = "FlySpeed", Callback = function(Value) Fly:SetSpeed(Value) end })
 end
-
 if Run then
     MovementTab:CreateSection("Speed Hacks")
-    MovementTab:CreateToggle({
-       Name = "Fast Run",
-       CurrentValue = false,
-       Flag = "FastRun",
-       Callback = function(Value) Run:Toggle(Value) end,
-    })
-    MovementTab:CreateSlider({
-       Name = "Walk Speed",
-       Range = {1, 1000},
-       Increment = 1,
-       Suffix = "Speed",
-       CurrentValue = 16,
-       Flag = "WalkSpeed",
-       Callback = function(Value) Run:SetSpeed(Value) end,
-    })
+    MovementTab:CreateToggle({ Name = "Fast Run", CurrentValue = false, Flag = "FastRun", Callback = function(Value) Run:Toggle(Value) end })
+    MovementTab:CreateSlider({ Name = "Walk Speed", Range = {1, 1000}, Increment = 1, Suffix = "Speed", CurrentValue = 16, Flag = "WalkSpeed", Callback = function(Value) Run:SetSpeed(Value) end })
 end
-
 if Jump then
     MovementTab:CreateSection("Jump Hacks")
-    MovementTab:CreateToggle({
-       Name = "Air Jump (Infinite)",
-       CurrentValue = false,
-       Flag = "AirJump",
-       Callback = function(Value) Jump:ToggleAirJump(Value) end,
-    })
-    MovementTab:CreateSlider({
-       Name = "Jump Power",
-       Range = {1, 2000},
-       Increment = 1,
-       Suffix = "Power",
-       CurrentValue = 50,
-       Flag = "JumpPower",
-       Callback = function(Value) Jump:SetJumpPower(Value) end,
-    })
+    MovementTab:CreateToggle({ Name = "Air Jump (Infinite)", CurrentValue = false, Flag = "AirJump", Callback = function(Value) Jump:ToggleAirJump(Value) end })
+    MovementTab:CreateSlider({ Name = "Jump Power", Range = {1, 2000}, Increment = 1, Suffix = "Power", CurrentValue = 50, Flag = "JumpPower", Callback = function(Value) Jump:SetJumpPower(Value) end })
 end
 
-MovementTab:CreateLabel("Controls: WASD + Space/Shift (PC)")
-MovementTab:CreateLabel("Mobile: Joystick + Camera Direction")
-
 -- Teleport Tab
-local TeleportTab = Window:CreateTab("Teleport", 4483345998) -- Pin Icon
+local TeleportTab = CreateMainTab("Teleport", 4483345998)
 if Teleport then
     TeleportTab:CreateSection("Player Teleport")
     local PlayerDropdown = TeleportTab:CreateDropdown({
@@ -287,42 +180,25 @@ if Teleport then
        Options = Teleport:GetPlayerNames(),
        CurrentOption = "",
        Flag = "TeleportDropdown",
-       Callback = function(Option)
-          Teleport:ToPlayer(Option[1])
-       end,
+       Callback = function(Option) Teleport:ToPlayer(Option[1]) end,
     })
-
-    TeleportTab:CreateButton({
-       Name = "Refresh Player List",
-       Callback = function()
-          PlayerDropdown:Set(Teleport:GetPlayerNames())
-       end,
-    })
+    TeleportTab:CreateButton({ Name = "Refresh Player List", Callback = function() PlayerDropdown:Set(Teleport:GetPlayerNames()) end })
 end
 
 -- Misc Tab
-local MiscTab = Window:CreateTab("Misc", 4483362458) -- Settings/Misc Icon
-
-MiscTab:CreateSection("Character")
+local MiscTab = CreateMainTab("Misc", 4483362458)
 if Invisibility then
+    MiscTab:CreateSection("Character")
     MiscTab:CreateToggle({
        Name = "FE Invisibility (Undetected)",
        CurrentValue = false,
        Flag = "InvisibilityToggle",
        Callback = function(Value)
           Invisibility:Toggle(Value)
-          if not Value then
-             Rayfield:Notify({
-                Title = "Invisibility Disabled",
-                Content = "Note: You may need to Reset/Respawn to become visible to others again.",
-                Duration = 5,
-                Image = "rbxassetid://4483362458",
-             })
-          end
+          if not Value then _G.ULTIMATE_NOTIFY("Note: You may need to Reset to become visible to others again.") end
        end,
     })
 end
-
 MiscTab:CreateSection("Server")
 MiscTab:CreateButton({
    Name = "Rejoin Game",
@@ -334,10 +210,4 @@ MiscTab:CreateButton({
 })
 
 print("ULTIMATE Hub | Finished Loading")
-
-Rayfield:Notify({
-   Title = "ULTIMATE HUB V3",
-   Content = "Premium ESP & Fly Modules Loaded!",
-   Duration = 5,
-   Image = "rbxassetid://4483362458",
-})
+_G.ULTIMATE_NOTIFY("Welcome to ULTIMATE HUB V3 | rafsunboss. Please login.")
