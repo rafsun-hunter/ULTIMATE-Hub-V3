@@ -49,10 +49,8 @@ local function loadModule(path)
     return nil
 end
 
--- Load Login Module
-local Login = loadModule("cheat/login.lua")
+-- Key Storage Logic
 local keyFilePath = "UltimateHubV3/Key.txt"
-
 local function saveKey(key)
     if not isfolder("UltimateHubV3") then makefolder("UltimateHubV3") end
     writefile(keyFilePath, key)
@@ -66,10 +64,9 @@ local function getSavedKey()
     return nil
 end
 
-local authenticated = false
 local savedKey = getSavedKey()
 
--- Create Window first so we can show notifications
+-- Create Window
 local Window = Rayfield:CreateWindow({
    Name = "ULTIMATE HUB V3 | rafsunboss",
    LoadingTitle = "ULTIMATE Hub V3",
@@ -78,57 +75,8 @@ local Window = Rayfield:CreateWindow({
    KeySystem = false
 })
 
-if savedKey and Login then
-    print("ULTIMATE Hub | Verifying saved key...")
-    _G.ULTIMATE_NOTIFY("Verifying saved key, please wait...")
-    if Login:Verify(savedKey) then
-        authenticated = true
-        _G.ULTIMATE_NOTIFY("Auto-Login Successful!")
-    else
-        _G.ULTIMATE_NOTIFY("Saved key expired or invalid. Please login again.")
-    end
-end
-
-if not authenticated and Login then
-    local LoginTab = Window:CreateTab("Login", 4483362458)
-    LoginTab:CreateSection("Key System")
-    
-    LoginTab:CreateButton({
-        Name = "Get Key (Copy Link)",
-        Callback = function()
-            local success, link = Login:GetLink()
-            if success then
-                if setclipboard then setclipboard(link) end
-                _G.ULTIMATE_NOTIFY("Key link copied to clipboard!")
-            end
-        end
-    })
-    
-    local keyInput = savedKey or ""
-    LoginTab:CreateInput({
-        Name = "Enter Key",
-        CurrentValue = savedKey or "",
-        PlaceholderText = "Paste key here...",
-        RemoveTextAfterFocusLost = false,
-        Callback = function(Text) keyInput = Text end,
-    })
-    
-    LoginTab:CreateButton({
-        Name = "Verify & Login",
-        Callback = function()
-            if not keyInput or keyInput == "" then _G.ULTIMATE_NOTIFY("Please enter a key first.") return end
-            _G.ULTIMATE_NOTIFY("Verifying key...")
-            if Login:Verify(keyInput) then
-                saveKey(keyInput)
-                _G.ULTIMATE_NOTIFY("Success! Loading Hub...")
-                task.wait(1)
-                Rayfield:Destroy()
-                loadstring(game:HttpGet(repo .. "main.lua"))()
-            end
-        end
-    })
-else
-    -- Main Hub Logic starts here
+-- Hub Loader Function
+local function LoadHub()
     print("ULTIMATE Hub | Loading modules...")
 
     -- Load Feature Modules
@@ -154,27 +102,9 @@ else
     end
     if Magic then
         CombatTab:CreateSection("Magic & Invisibility")
-        CombatTab:CreateToggle({ 
-            Name = "Enable Magic Hitbox", 
-            CurrentValue = false, 
-            Flag = "MagicToggle", 
-            Callback = function(Value) Magic:ToggleHitbox(Value) end 
-        })
-        CombatTab:CreateSlider({ 
-            Name = "Hitbox Size", 
-            Range = {2, 50}, 
-            Increment = 1, 
-            Suffix = "Studs", 
-            CurrentValue = 5, 
-            Flag = "HitboxSize", 
-            Callback = function(Value) Magic:SetSize(Value) end 
-        })
-        CombatTab:CreateToggle({
-            Name = "Character Invisibility",
-            CurrentValue = false,
-            Flag = "InvisToggle",
-            Callback = function(Value) Magic:SetInvisibility(Value) end
-        })
+        CombatTab:CreateToggle({ Name = "Enable Magic Hitbox", CurrentValue = false, Flag = "MagicToggle", Callback = function(Value) Magic:ToggleHitbox(Value) end })
+        CombatTab:CreateSlider({ Name = "Hitbox Size", Range = {2, 50}, Increment = 1, Suffix = "Studs", CurrentValue = 5, Flag = "HitboxSize", Callback = function(Value) Magic:SetSize(Value) end })
+        CombatTab:CreateToggle({ Name = "Character Invisibility", CurrentValue = false, Flag = "InvisToggle", Callback = function(Value) Magic:SetInvisibility(Value) end })
     end
 
     -- Visuals Tab
@@ -307,6 +237,54 @@ else
     MiscTab:CreateSection("Server")
     MiscTab:CreateButton({ Name = "Rejoin Game", Callback = function() local ts = game:GetService("TeleportService") local p = game:GetService("Players").LocalPlayer ts:Teleport(game.PlaceId, p) end })
 
-    print("ULTIMATE Hub | Finished Loading")
+    print("ULTIMATE Hub | Hub Loaded Successfully.")
     _G.ULTIMATE_NOTIFY("Welcome to ULTIMATE HUB V3 | rafsunboss.")
+end
+
+-- Initialization & Authentication Logic
+local Login = loadModule("cheat/login.lua")
+
+if _G.ULTIMATE_AUTHENTICATED then
+    LoadHub()
+else
+    local LoginTab = Window:CreateTab("Login", 4483362458)
+    LoginTab:CreateSection("Key System")
+    
+    LoginTab:CreateButton({
+        Name = "Get Key (Copy Link)",
+        Callback = function()
+            local success, link = Login:GetLink()
+            if success then
+                if setclipboard then setclipboard(link) end
+                _G.ULTIMATE_NOTIFY("Key link copied to clipboard!")
+            end
+        end
+    })
+    
+    local keyInput = savedKey or ""
+    LoginTab:CreateInput({
+        Name = "Enter Key",
+        CurrentValue = savedKey or "",
+        PlaceholderText = "Paste key here...",
+        RemoveTextAfterFocusLost = false,
+        Callback = function(Text) keyInput = Text end,
+    })
+    
+    LoginTab:CreateButton({
+        Name = "Verify & Login",
+        Callback = function()
+            if not keyInput or keyInput == "" then _G.ULTIMATE_NOTIFY("Please enter a key first.") return end
+            _G.ULTIMATE_NOTIFY("Verifying key...")
+            if Login:Verify(keyInput) then
+                saveKey(keyInput)
+                _G.ULTIMATE_NOTIFY("Success! Unlocking Hub...")
+                _G.ULTIMATE_AUTHENTICATED = true
+                LoadHub()
+            else
+                _G.ULTIMATE_NOTIFY("Invalid Key. Please try again.")
+            end
+        end
+    })
+    
+    _G.ULTIMATE_NOTIFY("Please click 'Verify & Login' to continue.")
 end
