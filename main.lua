@@ -110,23 +110,19 @@ if not authenticated and Login then
         CurrentValue = savedKey or "",
         PlaceholderText = "Paste key here...",
         RemoveTextAfterFocusLost = false,
-        Callback = function(Text)
-            keyInput = Text
-        end,
+        Callback = function(Text) keyInput = Text end,
     })
     
     LoginTab:CreateButton({
         Name = "Verify & Login",
         Callback = function()
             if not keyInput or keyInput == "" then _G.ULTIMATE_NOTIFY("Please enter a key first.") return end
-            
             _G.ULTIMATE_NOTIFY("Verifying key...")
             if Login:Verify(keyInput) then
                 saveKey(keyInput)
                 _G.ULTIMATE_NOTIFY("Success! Loading Hub...")
                 task.wait(1)
                 Rayfield:Destroy()
-                -- Reload the script to enter the Hub
                 loadstring(game:HttpGet(repo .. "main.lua"))()
             end
         end
@@ -162,7 +158,7 @@ else
             Name = "Enable Magic Hitbox", 
             CurrentValue = false, 
             Flag = "MagicToggle", 
-            Callback = function(Value) Magic:Toggle(Value) end 
+            Callback = function(Value) Magic:ToggleHitbox(Value) end 
         })
         CombatTab:CreateSlider({ 
             Name = "Hitbox Size", 
@@ -224,33 +220,10 @@ else
     local AutoFarmTab = Window:CreateTab("Auto-Farm", 4483362458)
     if AutoFarm then
         AutoFarmTab:CreateSection("Universal Farm")
-        AutoFarmTab:CreateToggle({
-           Name = "Auto Clicker",
-           CurrentValue = false,
-           Flag = "AutoClicker",
-           Callback = function(Value) AutoFarm:ToggleAutoClick(Value) end,
-        })
-        AutoFarmTab:CreateToggle({
-           Name = "Auto Collect Nearby Items",
-           CurrentValue = false,
-           Flag = "AutoCollect",
-           Callback = function(Value) AutoFarm:ToggleAutoCollect(Value) end,
-        })
-        AutoFarmTab:CreateSlider({
-           Name = "Collection Range",
-           Range = {10, 500},
-           Increment = 10,
-           Suffix = "Studs",
-           CurrentValue = 50,
-           Flag = "FarmRange",
-           Callback = function(Value) AutoFarm:SetRange(Value) end,
-        })
-        AutoFarmTab:CreateInput({
-           Name = "Target Item Name",
-           PlaceholderText = "Empty = All Items",
-           RemoveTextAfterFocusLost = false,
-           Callback = function(Text) AutoFarm:SetTarget(Text) end,
-        })
+        AutoFarmTab:CreateToggle({ Name = "Auto Clicker", CurrentValue = false, Flag = "AutoClicker", Callback = function(Value) AutoFarm:ToggleAutoClick(Value) end })
+        AutoFarmTab:CreateToggle({ Name = "Auto Collect Nearby Items", CurrentValue = false, Flag = "AutoCollect", Callback = function(Value) AutoFarm:ToggleAutoCollect(Value) end })
+        AutoFarmTab:CreateSlider({ Name = "Collection Range", Range = {10, 500}, Increment = 10, Suffix = "Studs", CurrentValue = 50, Flag = "FarmRange", Callback = function(Value) AutoFarm:SetRange(Value) end })
+        AutoFarmTab:CreateInput({ Name = "Target Item Name", PlaceholderText = "Empty = All Items", RemoveTextAfterFocusLost = false, Callback = function(Text) AutoFarm:SetTarget(Text) end })
     end
 
     -- Teleport Tab
@@ -267,17 +240,9 @@ else
         TeleportTab:CreateButton({ Name = "Refresh Player List", Callback = function() PlayerDropdown:Set(Teleport:GetPlayerNames()) end })
         
         TeleportTab:CreateSection("Waypoint System")
-        
         local waypointName = ""
-        TeleportTab:CreateInput({
-            Name = "Waypoint Name",
-            PlaceholderText = "e.g. Home, Shop...",
-            RemoveTextAfterFocusLost = false,
-            Callback = function(Text) waypointName = Text end
-        })
-        
+        TeleportTab:CreateInput({ Name = "Waypoint Name", PlaceholderText = "e.g. Home, Shop...", RemoveTextAfterFocusLost = false, Callback = function(Text) waypointName = Text end })
         local WaypointDropdown
-        
         TeleportTab:CreateButton({
             Name = "Save Current Position",
             Callback = function()
@@ -288,25 +253,15 @@ else
                 end
             end
         })
-        
         WaypointDropdown = TeleportTab:CreateDropdown({
             Name = "Saved Waypoints",
             Options = Teleport:GetWaypointNames(),
             CurrentOption = "",
             Flag = "WaypointDropdown",
-            Callback = function(Option) 
-                if Option[1] then Teleport:ToWaypoint(Option[1]) end
-            end
+            Callback = function(Option) if Option[1] then Teleport:ToWaypoint(Option[1]) end end
         })
-        
         local newRename = ""
-        TeleportTab:CreateInput({
-            Name = "Rename To...",
-            PlaceholderText = "Enter new name...",
-            RemoveTextAfterFocusLost = false,
-            Callback = function(Text) newRename = Text end
-        })
-        
+        TeleportTab:CreateInput({ Name = "Rename To...", PlaceholderText = "Enter new name...", RemoveTextAfterFocusLost = false, Callback = function(Text) newRename = Text end })
         TeleportTab:CreateButton({
             Name = "Apply Rename",
             Callback = function()
@@ -319,7 +274,6 @@ else
                 end
             end
         })
-        
         TeleportTab:CreateButton({
             Name = "Delete Selected Waypoint",
             Callback = function()
@@ -348,23 +302,10 @@ else
         })
     end
     if Stamina then
-        MiscTab:CreateToggle({
-           Name = "Infinite Stamina/Energy",
-           CurrentValue = false,
-           Flag = "InfStamina",
-           Callback = function(Value) Stamina:Toggle(Value) end,
-        })
+        MiscTab:CreateToggle({ Name = "Infinite Stamina/Energy", CurrentValue = false, Flag = "InfStamina", Callback = function(Value) Stamina:Toggle(Value) end })
     end
-
     MiscTab:CreateSection("Server")
-    MiscTab:CreateButton({
-       Name = "Rejoin Game",
-       Callback = function()
-          local ts = game:GetService("TeleportService")
-          local p = game:GetService("Players").LocalPlayer
-          ts:Teleport(game.PlaceId, p)
-       end,
-    })
+    MiscTab:CreateButton({ Name = "Rejoin Game", Callback = function() local ts = game:GetService("TeleportService") local p = game:GetService("Players").LocalPlayer ts:Teleport(game.PlaceId, p) end })
 
     print("ULTIMATE Hub | Finished Loading")
     _G.ULTIMATE_NOTIFY("Welcome to ULTIMATE HUB V3 | rafsunboss.")
