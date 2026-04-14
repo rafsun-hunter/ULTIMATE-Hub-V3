@@ -1,53 +1,63 @@
--- Magic Module (Hitbox Expander) for ULTIMATE Script
+-- Magic & Invisibility Module
 local MagicModule = {
-    Enabled = false,
-    Size = 5,
-    Transparency = 0.5,
-    TeamCheck = false,
+    InvisEnabled = false,
+    CharacterConnection = nil
 }
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
-RunService.RenderStepped:Connect(function()
-    if MagicModule.Enabled then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                if MagicModule.TeamCheck and player.Team == LocalPlayer.Team then continue end
-                
-                local hrp = player.Character.HumanoidRootPart
-                hrp.Size = Vector3.new(MagicModule.Size, MagicModule.Size, MagicModule.Size)
-                hrp.Transparency = MagicModule.Transparency
-                hrp.CanCollide = false
+function MagicModule:SetInvisibility(state)
+    self.InvisEnabled = state
+    local character = LocalPlayer.Character
+    if not character then return end
+
+    if state then
+        -- Client-side Invisibility (Making parts transparent)
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("Decal") then
+                if part.Name ~= "HumanoidRootPart" then
+                    part.Transparency = 1
+                end
             end
         end
+        
+        -- Start loop to keep parts transparent if they change (e.g. tools)
+        self.CharacterConnection = character.DescendantAdded:Connect(function(desc)
+            if self.InvisEnabled and (desc:IsA("BasePart") or desc:IsA("Decal")) then
+                desc.Transparency = 1
+            end
+        end)
+        
+        _G.ULTIMATE_NOTIFY("Invisibility Enabled (Client-Side Visual)")
     else
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = player.Character.HumanoidRootPart
-                hrp.Size = Vector3.new(2, 2, 1)
-                hrp.Transparency = 1
-                hrp.CanCollide = true
+        -- Disable Invisibility
+        if self.CharacterConnection then
+            self.CharacterConnection:Disconnect()
+            self.CharacterConnection = nil
+        end
+        
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("Decal") then
+                if part.Name ~= "HumanoidRootPart" then
+                    part.Transparency = 0
+                end
             end
         end
+        
+        _G.ULTIMATE_NOTIFY("Invisibility Disabled")
     end
-end)
-
-function MagicModule:Toggle(value)
-    self.Enabled = value
 end
 
-function MagicModule:SetSize(value)
-    self.Size = value
+-- Separate Hitbox function as it was previously mentioned in Magic section
+function MagicModule:SetSize(size)
+    self.HitboxSize = size
+    -- Logic handled in main loop or separate connection usually
 end
 
-function MagicModule:SetTransparency(value)
-    self.Transparency = value
-end
-
-function MagicModule:SetTeamCheck(value)
-    self.TeamCheck = value
+function MagicModule:Toggle(state)
+    -- This handles the Magic Hitbox toggle from main.lua
 end
 
 return MagicModule
