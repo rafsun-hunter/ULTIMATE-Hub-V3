@@ -168,21 +168,36 @@ RunService.RenderStepped:Connect(function()
                         objects.Name.Visible = false
                     end
 
-                    -- Health Bar
+                    -- Health Bar (Accurate Green Line)
                     if ESPModule.Health then
-                        local hpPercent = hum.Health / hum.MaxHealth
-                        local hpColor = Color3.fromHSV(hpPercent / 3, 1, 1)
+                        local hpPercent = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+                        local barColor = Color3.fromRGB(0, 255, 0) -- Vibrant Green
+                        
+                        -- If you want it to turn red only when very low (below 25%):
+                        if hpPercent < 0.25 then
+                            barColor = Color3.fromRGB(255, 0, 0)
+                        elseif hpPercent < 0.5 then
+                            barColor = Color3.fromRGB(255, 255, 0)
+                        end
+
                         local barHeight = boxHeight * hpPercent
+                        
+                        -- Background/Outline for the bar (Black)
                         objects.HealthBarOutline.Size = Vector2.new(4, boxHeight + 2)
                         objects.HealthBarOutline.Position = Vector2.new(boxX - 6, boxY - 1)
+                        objects.HealthBarOutline.Color = Color3.fromRGB(0, 0, 0)
                         objects.HealthBarOutline.Visible = true
+                        
+                        -- The actual Green Health Line
                         objects.HealthBar.Size = Vector2.new(2, barHeight)
                         objects.HealthBar.Position = Vector2.new(boxX - 5, boxY + (boxHeight - barHeight))
-                        objects.HealthBar.Color = hpColor
+                        objects.HealthBar.Color = barColor
                         objects.HealthBar.Visible = true
+                        
+                        -- Health Text (Green)
                         objects.HealthText.Text = tostring(math.floor(hum.Health))
                         objects.HealthText.Position = Vector2.new(boxX - 25, boxY + (boxHeight - barHeight) - 5)
-                        objects.HealthText.Color = hpColor
+                        objects.HealthText.Color = barColor
                         objects.HealthText.Visible = true
                     else
                         objects.HealthBar.Visible = false
